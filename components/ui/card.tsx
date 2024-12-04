@@ -105,7 +105,7 @@ export default function Card() {
             <img
               src={post.image}
               alt="Post Illustration"
-              className="w-32 h-auto rounded-lg shadow-md"
+              className="w-32 h-auto rounded-lg "
             />
           </div>
          </div>
