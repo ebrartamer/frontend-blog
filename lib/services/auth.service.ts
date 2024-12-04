@@ -25,102 +25,106 @@ interface AuthResponse {
     user: User;
     token: string;
   };
-  message?: string;
+  message: string;
 }
-
-// Axios instance oluştur
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 export const authService = {
   async register(data: RegisterData) {
     try {
-      const response = await api.post<AuthResponse>('/api/users/register', data);
-      console.log('Register response:', response.data);
-      
-      if (response.data.data?.token) {
-        localStorage.setItem('token', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-      }
-      return {
-        user: response.data.data.user,
-        token: response.data.data.token
-      };
-    } catch (error: any) {
-      console.error('Register error:', error.response?.data || error.message);
-      throw error.response?.data || { message: 'Kayıt sırasında bir hata oluştu' };
-    }
-  },
-
-  async login(data: LoginData) {
-    try {
-      // Request detaylarını logla
-      console.log('Login request:', {
-        url: `${API_URL}/api/users/login`,
+      console.log('Register request:', {
+        url: `${API_URL}/api/users/register`,
         data: data
       });
 
-      // Backend'e istek at
-      const response = await axios.post<AuthResponse>(`${API_URL}/api/users/login`, data);
-
-      // Response detaylarını logla
-      console.log('Login response:', {
-        status: response.status,
-        data: response.data
-      });
+      const response = await axios.post<AuthResponse>(`${API_URL}/api/users/register`, data);
+      console.log('Register response:', response.data);
 
       // Response kontrolü
-      if (!response.data) {
-        throw new Error('Sunucudan yanıt alınamadı');
+      if (!response.data || !response.data.success) {
+        throw new Error(response.data?.message || 'Kayıt başarısız');
       }
 
-      // Success kontrolü
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Giriş başarısız');
+      // Backend'den gelen veriyi kontrol et
+      const { user, token } = response.data.data;
+
+      // Veri kontrolü
+      if (!user || !token) {
+        console.error('Invalid response format:', response.data);
+        throw new Error('Geçersiz sunucu yanıtı');
       }
 
-      // Data kontrolü
-      if (!response.data.data) {
-        throw new Error('Veri alınamadı');
-      }
-
-      const { token, user } = response.data.data;
-
-      // Token kontrolü
-      if (!token) {
-        throw new Error('Token alınamadı');
-      }
-
-      // User kontrolü
-      if (!user) {
-        throw new Error('Kullanıcı bilgileri alınamadı');
-      }
-
-      // Bilgileri kaydet
+      // Token ve user bilgilerini kaydet
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
       // Başarılı sonucu döndür
       return { user, token };
-
     } catch (error: any) {
-      // Hata detaylarını logla
-      console.error('Login error details:', {
-        error: error,
-        response: error.response?.data,
-        status: error.response?.status,
-        message: error.message
-      });
+      console.error('Register error:', error);
+
+      // Backend'den gelen hata mesajı
+      if (error.response?.data?.message) {
+        throw { message: error.response.data.message };
+      }
 
       // HTTP durum kodlarına göre özel mesajlar
-      if (error.response) {
+      if (error.response?.status) {
         switch (error.response.status) {
           case 400:
-            throw { message: 'Geçersiz kullanıcı adı veya şifre' };
+            throw { message: 'Geçersiz kayıt bilgileri' };
+          case 409:
+            throw { message: 'Bu kullanıcı adı veya email zaten kullanımda' };
+          case 422:
+            throw { message: 'Eksik veya hatalı bilgi' };
+          case 500:
+            throw { message: 'Sunucu hatası' };
+          default:
+            throw { message: 'Kayıt sırasında bir hata oluştu' };
+        }
+      }
+
+      throw { message: error.message || 'Kayıt sırasında bir hata oluştu' };
+    }
+  },
+
+  async login(data: LoginData) {
+    try {
+      console.log('Login request:', {
+        url: `${API_URL}/api/users/login`,
+        data: data
+      });
+
+      const response = await axios.post<AuthResponse>(`${API_URL}/api/users/login`, data);
+      console.log('Login response:', response.data);
+
+      // Backend'den gelen veriyi kontrol et
+      if (!response.data || !response.data.success) {
+        throw new Error(response.data?.message || 'Giriş başarısız');
+      }
+
+      const { user, token } = response.data.data;
+
+      if (!user || !token) {
+        console.error('Invalid response format:', response.data);
+        throw new Error('Geçersiz giriş yanıtı');
+      }
+
+      // Token ve user bilgilerini kaydet
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      return { user, token };
+    } catch (error: any) {
+      console.error('Login error:', error);
+
+      // Backend'den gelen hata mesajı
+      if (error.response?.data?.message) {
+        throw { message: error.response.data.message };
+      }
+
+      // HTTP durum kodlarına göre özel mesajlar
+      if (error.response?.status) {
+        switch (error.response.status) {
           case 401:
             throw { message: 'Kullanıcı adı veya şifre hatalı' };
           case 404:
@@ -128,20 +132,11 @@ export const authService = {
           case 500:
             throw { message: 'Sunucu hatası' };
           default:
-            if (error.response.data?.message) {
-              throw { message: error.response.data.message };
-            }
             throw { message: 'Giriş sırasında bir hata oluştu' };
         }
       }
 
-      // Backend'den gelen özel hata mesajı
-      if (error.message) {
-        throw { message: error.message };
-      }
-
-      // Genel hata
-      throw { message: 'Giriş sırasında bir hata oluştu' };
+      throw { message: error.message || 'Giriş sırasında bir hata oluştu' };
     }
   },
 

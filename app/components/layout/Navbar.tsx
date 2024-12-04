@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { RootState } from "@/lib/store"
 import { logout } from "@/lib/features/auth/authSlice"
 import { useTheme } from "next-themes"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,27 +26,21 @@ export default function Navbar() {
   const dispatch = useDispatch()
   const router = useRouter()
 
-  // Giriş durumuna göre farklı navigasyon linkleri
-  const navLinks = user 
-    ? [
-        { href: "/ourStory", label: "Our Story" },
-        { href: "/write", label: "Write" },
-      ]
-    : [
-        { href: "/ourStory", label: "Our Story" },
-        { href: "/write", label: "Write" },
-        { href: "/auth/login", label: "Sign In" },
-      ]
-      console.log(user)
-      console.log(navLinks)
+  useEffect(() => {
+    console.log('Current user:', user);
+  }, [user]);
 
-  const handleLogout = () => {
-    dispatch(logout())
-    router.push('/')
+  const handleLogout = async () => {
+    await dispatch(logout());
+    router.push('/');
   }
 
+  const navLinks = [
+    { href: "/ourStory", label: "Our Story" },
+    { href: "/write", label: "Write" },
+  ]
+
   return (
-    
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-24">
       <div className="container flex h-16 justify-between items-center">
         {/* Logo ve Sol Menü */}
@@ -60,6 +54,32 @@ export default function Navbar() {
               priority
             />
           </Link>
+          {/* Search Box - Sadece giriş yapmış kullanıcılara göster */}
+          {user && (
+            <div className="hidden md:flex flex-1 max-w-md">
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Search Post"
+                  className="w-full h-10 pl-10 pr-4 rounded-full border border-border bg-background"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sağ Menü */}
@@ -78,11 +98,14 @@ export default function Navbar() {
           <ThemeToggle />
 
           {user ? (
-            <div className="hidden items-center gap-4 md:flex">
+            <div className="flex  items-center gap-4 md:gap-6">
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center space-x-2 hover:text-accent transition-colors">
-                    <User className="h-5 w-5" />
+                  <button className="flex items-center gap-2 hover:text-accent transition-colors">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
                     <span className="text-sm font-medium">{user.username}</span>
                   </button>
                 </DropdownMenuTrigger>
@@ -114,6 +137,12 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="hidden items-center gap-4 md:flex">
+              <Link
+                href="/auth/login"
+                className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+              >
+                Sign In
+              </Link>
               <Link
                 href="/auth/register"
                 className="rounded-md bg-accent text-white px-4 py-2 text-sm font-medium transition-colors hover:bg-accent/90"
@@ -184,12 +213,25 @@ export default function Navbar() {
               ))}
               {user ? (
                 <>
+                  <div className="flex items-center gap-2 py-2">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium">{user.username}</span>
+                  </div>
                   <Link
                     href="/profile"
                     className="text-lg font-medium text-foreground hover:text-accent"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Profile
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="text-lg font-medium text-foreground hover:text-accent"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Settings
                   </Link>
                   <button 
                     className="w-full rounded-md bg-accent text-white px-4 py-2 text-lg font-medium transition-colors hover:bg-accent/90"
@@ -198,17 +240,26 @@ export default function Navbar() {
                       setIsMenuOpen(false)
                     }}
                   >
-                    Çıkış Yap
+                    Log out
                   </button>
                 </>
               ) : (
-                <Link
-                  href="/auth/register"
-                  className="w-full rounded-md bg-accent text-white px-4 py-2 text-lg font-medium text-center transition-colors hover:bg-accent/90"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="text-lg font-medium text-foreground hover:text-accent"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="w-full rounded-md bg-accent text-white px-4 py-2 text-lg font-medium text-center transition-colors hover:bg-accent/90"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </>
               )}
             </div>
           </div>

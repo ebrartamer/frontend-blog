@@ -28,11 +28,20 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      console.log('Submitting form data:', formData);
       const result = await dispatch(register(formData)).unwrap()
-      toast.success("Kayıt başarılı!")
-      onClose()
-      router.push("/") // Ana sayfaya yönlendir
+      console.log('Register success:', result);
+      
+      if (result.user) {
+        toast.success("Kayıt başarılı!")
+        onClose()
+        router.push("/")
+      } else {
+        console.error('No user data in result:', result);
+        toast.error("Kullanıcı bilgileri alınamadı")
+      }
     } catch (error: any) {
+      console.error('Register error in modal:', error);
       toast.error(error.message || "Kayıt sırasında bir hata oluştu")
     }
   }

@@ -5,12 +5,12 @@ import Link from "next/link"
 import { useState } from "react"
 import Image from "next/image"
 import { SignUpModal } from "@/components/modals/SignUpModal"
-import { SignInModal } from "@/components/modals/SignInModal"
+import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false)
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-background px-4 space-y-8">
@@ -26,23 +26,23 @@ export default function RegisterPage() {
           Sign Up With Google
         </button>
         <button 
-          onClick={() => setIsSignInModalOpen(true)}
+          onClick={() => setIsSignUpModalOpen(true)}
           className="flex items-center justify-center gap-2 rounded-full border border-black dark:border-white py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <Image src="/assets/icons/email.svg" alt="Email Icon" width={20} height={20} />
-          Sign In With email
+          Sign Up With email
         </button>
       </div>
 
       {/* Alt Yazı */}
       <p className="mt-8 text-sm text-gray-600 dark:text-gray-400">
-        Don't have an account?{" "}
-        <button 
-          onClick={() => setIsSignUpModalOpen(true)}
+        Already have an account?{" "}
+        <Link 
+          href="/auth/login"
           className="text-accent hover:underline"
         >
-          Sign Up
-        </button>
+          Sign In
+        </Link>
       </p>
       <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center max-w-md">
         Click "Sign up" to agree to Post's{" "}
@@ -58,12 +58,10 @@ export default function RegisterPage() {
 
       <SignUpModal 
         isOpen={isSignUpModalOpen}
-        onClose={() => setIsSignUpModalOpen(false)}
-      />
-
-      <SignInModal 
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
+        onClose={() => {
+          setIsSignUpModalOpen(false)
+          router.push('/')
+        }}
       />
     </div>
   )

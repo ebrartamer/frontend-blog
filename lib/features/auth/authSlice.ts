@@ -37,6 +37,7 @@ export const register = createAsyncThunk(
   'auth/register',
   async (data: { username: string; email: string; password: string }, { rejectWithValue }) => {
     try {
+      console.log('Register thunk data:', data);
       const response = await authService.register(data);
       console.log('Register thunk response:', response);
       return response;
@@ -88,8 +89,16 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         console.log('Register fulfilled payload:', action.payload);
         state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        if (action.payload?.user) {
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          console.log('User state updated:', state.user);
+          // LocalStorage'a kaydet
+          localStorage.setItem('token', action.payload.token);
+          localStorage.setItem('user', JSON.stringify(action.payload.user));
+        } else {
+          console.error('No user data in register response');
+        }
       })
       .addCase(register.rejected, (state, action) => {
         console.error('Register rejected:', action.payload);
@@ -109,6 +118,7 @@ const authSlice = createSlice({
         if (action.payload?.user) {
           state.user = action.payload.user;
           state.token = action.payload.token;
+          console.log('User state updated:', state.user);
         } else {
           console.error('Login fulfilled but no user in payload:', action.payload);
         }
