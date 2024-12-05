@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { blogService } from '@/lib/services/blog.service';
 
 interface Blog {
   _id: string;
@@ -47,63 +46,75 @@ const initialState: BlogState = {
   uploadedImageUrl: null,
 };
 
-export const uploadImage = createAsyncThunk(
-  'blog/uploadImage',
-  async (file: File, { rejectWithValue }) => {
-    try {
-      const response = await blogService.uploadImage(file);
-      return response.data.imageUrl;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
+export const fetchBlogs = createAsyncThunk(
+  'blog/fetchBlogs',
+  async () => {
+    const response = await fetch('http://localhost:5000/api/blogs');
+    const data = await response.json();
+    console.log(data)
+    if (!response.ok) throw new Error(data.message);
+    return data.data;
   }
 );
 
 export const createBlog = createAsyncThunk(
   'blog/createBlog',
-  async (data: { title: string; content: string; categoryId: string; tagsId: string[]; author: string; image?: File }, { rejectWithValue }) => {
-    try {
-      const response = await blogService.createBlog(data);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchBlogs = createAsyncThunk(
-  'blog/fetchBlogs',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await blogService.getBlogs();
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
+  async (data: { title: string; content: string; categoryId: string; tagsId: string[]; author: string; image?: File }) => {
+    const response = await fetch('http://localhost:5000/api/blogs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+    if (!response.ok) throw new Error(responseData.message);
+    return responseData.data;
   }
 );
 
 export const updateBlog = createAsyncThunk(
   'blog/updateBlog',
-  async ({ id, data }: { id: string; data: any }, { rejectWithValue }) => {
-    try {
-      const response = await blogService.updateBlog(id, data);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
+  async ({ id, data }: { id: string; data: any }) => {
+    const response = await fetch(`http://localhost:5000/api/blogs/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    const responseData = await response.json();
+    if (!response.ok) throw new Error(responseData.message);
+    return responseData.data;
   }
 );
 
 export const deleteBlog = createAsyncThunk(
   'blog/deleteBlog',
-  async (id: string, { rejectWithValue }) => {
-    try {
-      await blogService.deleteBlog(id);
-      return id;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+  async (id: string) => {
+    const response = await fetch(`http://localhost:5000/api/blogs/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message);
     }
+    return id;
+  }
+);
+
+export const uploadImage = createAsyncThunk(
+  'blog/uploadImage',
+  async (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await fetch('http://localhost:5000/api/blogs/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+    return data.imageUrl;
   }
 );
 
@@ -119,37 +130,6 @@ const blogSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Upload Image
-    builder
-      .addCase(uploadImage.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(uploadImage.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.uploadedImageUrl = action.payload;
-      })
-      .addCase(uploadImage.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Create Blog
-    builder
-      .addCase(createBlog.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(createBlog.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.blogs.unshift(action.payload);
-      })
-      .addCase(createBlog.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Fetch Blogs
     builder
       .addCase(fetchBlogs.pending, (state) => {
         state.isLoading = true;
@@ -161,11 +141,20 @@ const blogSlice = createSlice({
       })
       .addCase(fetchBlogs.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Update Blog
-    builder
+        state.error = action.error.message || 'Bloglar yüklenirken hata oluştu';
+      })
+      .addCase(createBlog.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createBlog.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.blogs.unshift(action.payload);
+      })
+      .addCase(createBlog.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Blog oluşturulurken hata oluştu';
+      })
       .addCase(updateBlog.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -179,11 +168,8 @@ const blogSlice = createSlice({
       })
       .addCase(updateBlog.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Delete Blog
-    builder
+        state.error = action.error.message || 'Blog güncellenirken hata oluştu';
+      })
       .addCase(deleteBlog.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -194,7 +180,19 @@ const blogSlice = createSlice({
       })
       .addCase(deleteBlog.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload as string;
+        state.error = action.error.message || 'Blog silinirken hata oluştu';
+      })
+      .addCase(uploadImage.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(uploadImage.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.uploadedImageUrl = action.payload;
+      })
+      .addCase(uploadImage.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Resim yüklenirken hata oluştu';
       });
   },
 });

@@ -51,7 +51,7 @@ export default function Banner() {
                 href="/auth/login"
                 className="bg-accent font-sans font-bold text-white px-4 py-2 rounded-md"
               >
-                Get Started
+                Start Reading
               </Link>
             </motion.div>
           </motion.div>
