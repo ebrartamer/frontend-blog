@@ -45,7 +45,7 @@ export default function Navbar() {
       <div className="container flex h-16 justify-between items-center">
         {/* Logo ve Sol Menü */}
         <div className="flex flex-1 items-center md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href={user ? "/main" : "/"} className="flex items-center space-x-2">
             <Image
               src={theme === 'dark' ? '/logoDark.svg' : '/postLogo.svg'}
               alt="Blog Logo"

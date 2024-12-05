@@ -29,9 +29,9 @@ export default function MainContent() {
   }
 
   const getImageUrl = (image?: string) => {
-    if (!image) return '/assets/blog/default.png'
+    if (!image) return 'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?q=80&w=2070&auto=format&fit=crop'
     if (image.startsWith('http')) return image
-    return `${process.env.NEXT_PUBLIC_API_URL}/${image}`
+    return `${process.env.NEXT_PUBLIC_API_URL}/uploads/${image}`
   }
 
   return (
@@ -84,7 +84,7 @@ export default function MainContent() {
               blogs.map((blog: any) => (
                 blog && blog.author && (
                   <Link href={`/blog/${blog._id}`} key={blog._id}>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 hover:shadow-md transition-all duration-200 my-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 hover:shadow-md transition-all duration-200">
                       <div className="flex gap-6">
                         <div className="flex-1">
                           {/* Yazar Bilgileri */}
@@ -138,6 +138,7 @@ export default function MainContent() {
                               width={160}
                               height={128}
                               className="w-full h-full object-cover"
+                              unoptimized
                             />
                           </div>
                         </div>
@@ -174,6 +175,7 @@ export default function MainContent() {
                           width={64}
                           height={64}
                           className="w-full h-full object-cover"
+                          unoptimized
                         />
                       </div>
                       <div>
