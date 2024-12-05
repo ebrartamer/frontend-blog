@@ -35,7 +35,7 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
       if (result.user) {
         toast.success("Kayıt başarılı!")
         onClose()
-        router.push("/")
+        router.push("/main")
       } else {
         console.error('No user data in result:', result);
         toast.error("Kullanıcı bilgileri alınamadı")
@@ -116,7 +116,6 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
               <div className="grid gap-2">
                 <Button
                   type="button"
-                  variant="outline"
                   className="h-12 rounded-full border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800"
                   disabled={loading}
                 >

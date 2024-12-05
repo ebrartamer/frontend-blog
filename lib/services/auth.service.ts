@@ -46,6 +46,7 @@ export const authService = {
 
       // Backend'den gelen veriyi kontrol et
       const { user, token } = response.data.data;
+      
 
       // Veri kontrolü
       if (!user || !token) {

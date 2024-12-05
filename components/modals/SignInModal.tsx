@@ -30,7 +30,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
       const result = await dispatch(login(formData)).unwrap()
       toast.success("Giriş başarılı!")
       onClose()
-      router.push("/") // Ana sayfaya yönlendir
+      router.push("/main") 
     } catch (error: any) {
       toast.error(error.message || "Giriş sırasında bir hata oluştu")
     }
@@ -96,7 +96,6 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
               <div className="grid gap-2">
                 <Button
                   type="button"
-                  variant="outline"
                   className="h-12 rounded-full border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800"
                   disabled={loading}
                 >
