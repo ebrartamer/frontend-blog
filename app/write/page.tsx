@@ -3,17 +3,22 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Image as ImageIcon, X, Save } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
 
 export default function WritePage() {
+  const [isMounted, setIsMounted] = useState(false)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -34,87 +39,75 @@ export default function WritePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!title.trim()) {
+      toast.error("Lütfen bir başlık girin")
+      return
+    }
+    if (!content.trim()) {
+      toast.error("Lütfen içerik ekleyin")
+      return
+    }
+
     setIsLoading(true)
     try {
-      // Blog submission will be handled here
-      toast.success("Blog post created successfully!")
+      // Blog gönderme işlemi burada yapılacak
+      toast.success("Blog başarıyla oluşturuldu!")
       router.push("/profile")
     } catch (error) {
-      toast.error("An error occurred")
+      toast.error("Bir hata oluştu")
     } finally {
       setIsLoading(false)
     }
   }
 
+  if (!isMounted) return null
+
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 py-8 px-28">
-      <div className="container mx-auto px-4 ">
-        <h1 className="text-2xl font-bold font-sans text-primary dark:text-white mb-8">
-          New Blog Post
-        </h1>
+    <div className="min-h-screen bg-background relative">
+      <div className="container max-w-screen-xl mx-auto px-4 py-8">
+        <form id="blog-form" onSubmit={handleSubmit} className="flex gap-8">
+          {/* Sol Taraf - Yazı Alanı */}
+          <div className="flex-1 space-y-8">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Başlığınızı yazın"
+              className="text-5xl font-serif border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/40 font-medium"
+            />
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Hikayenizi anlatmaya başlayın..."
+              className="w-full min-h-[calc(100vh-300px)] text-xl font-serif leading-relaxed bg-transparent border-none resize-none focus:outline-none placeholder:text-muted-foreground/40"
+            />
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex gap-6">
-            {/* Left Side - Title and Content */}
-            <div className="flex-1 space-y-6">
-              {/* Blog Title */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-bold font-sans text-primary dark:text-white mb-4">
-                  Blog Title
-                </h2>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Write an engaging title..."
-                  className="font-sans text-lg"
-                />
-              </div>
-
-              {/* Blog Content */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-bold font-sans text-primary dark:text-white mb-4">
-                  Blog Content
-                </h2>
-                <div className="prose prose-lg max-w-none">
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Write your blog content here..."
-                    className="w-full min-h-[400px] p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-accent focus:border-transparent outline-none resize-y font-sans"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side - Image */}
-            <div className="w-1/3">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 sticky top-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold font-sans text-primary dark:text-white">
-                    Blog Image
-                  </h2>
-                  {imagePreview && (
+          {/* Sağ Taraf - Görsel */}
+          <div className="w-80">
+            <div className="sticky top-8 space-y-4">
+              <div className="p-6 bg-muted/20 rounded-2xl backdrop-blur-sm">
+                {imagePreview ? (
+                  <div className="space-y-4">
+                    <div className="aspect-[3/2] rounded-xl overflow-hidden bg-muted">
+                      <img
+                        src={imagePreview}
+                        alt="Blog görseli"
+                        className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={removeImage}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="w-full text-destructive/80 hover:text-destructive hover:bg-destructive/10"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-4 h-4 mr-2" />
+                      Görseli Kaldır
                     </Button>
-                  )}
-                </div>
-                {imagePreview ? (
-                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
-                    <img
-                      src={imagePreview}
-                      alt="Blog image"
-                      className="w-full h-full object-cover"
-                    />
                   </div>
                 ) : (
-                  <label className="block w-full aspect-video rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-accent dark:hover:border-accent transition-colors cursor-pointer">
+                  <label className="block aspect-[3/2] rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-all duration-300 cursor-pointer hover:bg-muted/30">
                     <input
                       type="file"
                       accept="image/*"
@@ -122,30 +115,19 @@ export default function WritePage() {
                       className="hidden"
                     />
                     <div className="flex flex-col items-center justify-center h-full">
-                      <ImageIcon className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400 font-sans">
-                        Click or drag to upload image
+                      <ImageIcon className="w-6 h-6 text-muted-foreground/40 mb-2" />
+                      <p className="text-sm text-muted-foreground/60 text-center px-4 font-medium">
+                        Kapak görseli ekle
                       </p>
                     </div>
                   </label>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Bottom Bar - Publishing Buttons */}
-          <div className="bg-transparent p-4 mt-8">
-            <div className="flex justify-end gap-4">
+              {/* Yayınla Butonu */}
               <Button
-                variant="outline"
-                onClick={() => router.back()}
-                className="font-sans"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                className="font-sans bg-accent hover:bg-accent/90 text-white"
+                type="submit"
+                className="w-full bg-accent hover:bg-accent/90 text-white font-medium h-12 rounded-xl"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -153,7 +135,7 @@ export default function WritePage() {
                 ) : (
                   <Save className="w-4 h-4 mr-2" />
                 )}
-                Publish
+                Yayınla
               </Button>
             </div>
           </div>

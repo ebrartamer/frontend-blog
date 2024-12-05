@@ -9,11 +9,14 @@ import { fetchBlogs } from "@/lib/features/blog/blogSlice"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 
 export default function MainContent() {
   const dispatch = useDispatch<AppDispatch>();
   const { categories, isLoading: categoriesLoading } = useSelector((state: RootState) => state.category);
   const { blogs, isLoading: blogsLoading } = useSelector((state: RootState) => state.blog);
+  const searchParams = useSearchParams();
+  const searchTerm = searchParams.get('search')?.toLowerCase();
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -34,6 +37,17 @@ export default function MainContent() {
     return `${process.env.NEXT_PUBLIC_API_URL}/uploads/${image}`
   }
 
+  const filteredBlogs = blogs?.filter(blog => {
+    if (!searchTerm) return true;
+    
+    return (
+      blog?.title?.toLowerCase().includes(searchTerm) ||
+      blog?.content?.toLowerCase().includes(searchTerm) ||
+      blog?.author?.username?.toLowerCase().includes(searchTerm) ||
+      blog?.categoryId?.name?.toLowerCase().includes(searchTerm)
+    );
+  });
+
   return (
     <main className="container mx-auto mt-12 px-4 lg:px-24">
       <div className="flex flex-col md:flex-row gap-8">
@@ -50,12 +64,12 @@ export default function MainContent() {
               <ul className="flex items-center space-x-6 overflow-x-auto">
                 {!categoriesLoading && categories && categories.length > 0 && categories.map((category: any) => (
                   <li key={category.name}>
-                    <a
+                    <Link
                       href={`/category/${category.name}`}
                       className="text-m font-medium text-gray-700 hover:text-black transition-colors whitespace-nowrap"
                     >
                       {category.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -80,8 +94,8 @@ export default function MainContent() {
                   </div>
                 ))}
               </div>
-            ) : blogs && blogs.length > 0 ? (
-              blogs.map((blog: any) => (
+            ) : filteredBlogs && filteredBlogs.length > 0 ? (
+              filteredBlogs.map((blog: any) => (
                 blog && blog.author && (
                   <Link href={`/blog/${blog._id}`} key={blog._id}>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 my-4 hover:shadow-md transition-all duration-200">
@@ -149,7 +163,11 @@ export default function MainContent() {
               ))
             ) : (
               <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl">
-                <p className="text-gray-500 font-sans">Henüz blog yazısı bulunmuyor.</p>
+                <p className="text-gray-500 font-sans">
+                  {searchTerm 
+                    ? 'Arama kriterlerinize uygun blog bulunamadı.' 
+                    : 'Henüz blog yazısı bulunmuyor.'}
+                </p>
               </div>
             )}
           </div>
@@ -163,12 +181,12 @@ export default function MainContent() {
           {/* Popüler Yazılar */}
           <div>
             <h2 className="text-xl font-sans text-primary font-bold mb-4">Popüler Yazılar</h2>
-            <div className="space-y-4 bg-white dark:bg-gray-800 p-6 rounded-xl">
+            <div className="space-y-4 bg-white dark:bg-gray-800  rounded-xl">
               {blogs?.slice(0, 3).map((blog: any) => (
                 blog && blog.author && (
                   <Link href={`/blog/${blog._id}`} key={blog._id}>
-                    <div className="flex items-center gap-4 group">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden">
+                    <div className="flex items-center gap-4  group">
+                      <div className="w-16 h-16 rounded-lg my-2 overflow-hidden">
                         <Image
                           src={getImageUrl(blog.image)}
                           alt={blog.title || 'Blog görseli'}
@@ -192,32 +210,39 @@ export default function MainContent() {
               ))}
             </div>
           </div>
-
-          {/* Kategoriler */}
+          {/* Etiketler */}
           <div>
-            <h2 className="text-xl font-sans text-primary font-bold mb-4">Kategoriler</h2>
-            <div className="flex flex-wrap gap-2 bg-white dark:bg-gray-800 p-6 rounded-xl">
-              {blogs?.reduce((categories: Set<string>, blog: any) => {
-                if (blog?.categoryId?.name) {
-                  categories.add(blog.categoryId.name)
+            <h2 className="text-xl font-sans text-primary font-bold mb-4">Etiketler</h2>
+            <div className="flex flex-wrap gap-2 bg-white dark:bg-gray-800 rounded-xl">
+              {blogs?.reduce((tags: Set<string>, blog: any) => {
+                if (blog?.tagsId) {
+                  blog.tagsId.forEach((tag: any) => {
+                    if (tag.name) {
+                      tags.add(tag.name)
+                    }
+                  })
                 }
-                return categories
+                return tags
               }, new Set()).size > 0 ? (
-                Array.from(blogs.reduce((categories: Set<string>, blog: any) => {
-                  if (blog?.categoryId?.name) {
-                    categories.add(blog.categoryId.name)
+                Array.from(blogs.reduce((tags: Set<string>, blog: any) => {
+                  if (blog?.tagsId) {
+                    blog.tagsId.forEach((tag: any) => {
+                      if (tag.name) {
+                        tags.add(tag.name)
+                      }
+                    })
                   }
-                  return categories
-                }, new Set())).map((category) => (
+                  return tags
+                }, new Set())).map((tag) => (
                   <span
-                    key={category}
+                    key={tag}
                     className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm font-sans text-gray-600 dark:text-gray-300"
                   >
-                    {category}
+                    {tag}
                   </span>
                 ))
               ) : (
-                <p className="text-gray-500 font-sans">Henüz kategori bulunmuyor.</p>
+                <p className="text-gray-500 font-sans">Etiket bulunmuyor.</p>
               )}
             </div>
           </div>

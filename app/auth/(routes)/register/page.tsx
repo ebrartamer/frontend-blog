@@ -46,13 +46,13 @@ export default function RegisterPage() {
       </p>
       <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center max-w-md">
         Click "Sign up" to agree to Post's{" "}
-        <a href="/terms" className="text-black dark:text-white underline">
+        <Link href="/terms" className="text-black dark:text-white underline">
           Terms of Service
-        </a>{" "}
+        </Link>{" "}
         and acknowledge that Post's{" "}
-        <a href="/privacy-policy" className="text-black dark:text-white underline">
+        <Link href="/privacy-policy" className="text-black dark:text-white underline">
           Privacy Policy
-        </a>{" "}
+        </Link>{" "}
         applies to you.
       </p>
 

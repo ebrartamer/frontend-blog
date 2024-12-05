@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ThemeToggle } from "../ThemeToggle"
 import { useSelector, useDispatch } from "react-redux"
-import { RootState } from "@/lib/store"
+import { RootState, AppDispatch } from "@/lib/store"
 import { logout } from "@/lib/features/auth/authSlice"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
@@ -18,21 +18,34 @@ import {
 } from "@/app/components/ui/dropdown-menu"
 import { User, LogOut, Settings } from "lucide-react"
 import { useRouter } from "next/navigation"
+import {useDebounce} from "@/lib/hooks/useDebounce"
 
 export default function Navbar() {
   const { user } = useSelector((state: RootState) => state.auth)
   const { theme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const dispatch = useDispatch()
+  const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+  const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
 
   useEffect(() => {
-    console.log('Current user:', user);
-  }, [user]);
+    if (debouncedSearchTerm) {
+      router.push(`/main?search=${encodeURIComponent(debouncedSearchTerm)}`)
+    }
+  }, [debouncedSearchTerm, router])
 
   const handleLogout = async () => {
-    await dispatch(logout());
-    router.push('/');
+    try {
+      await dispatch(logout()).unwrap()
+      router.push('/')
+    } catch (error) {
+      console.error('Çıkış yapılırken hata oluştu:', error)
+    }
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
   }
 
   const navLinks = [
@@ -45,7 +58,7 @@ export default function Navbar() {
       <div className="container flex h-16 justify-between items-center">
         {/* Logo ve Sol Menü */}
         <div className="flex flex-1 items-center md:gap-10">
-          <Link href={user ? "/main" : "/"} className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2">
             <Image
               src={theme === 'dark' ? '/logoDark.svg' : '/postLogo.svg'}
               alt="Blog Logo"
@@ -55,13 +68,15 @@ export default function Navbar() {
             />
           </Link>
           {/* Search Box - Sadece giriş yapmış kullanıcılara göster */}
-          {user && (
-            <div className="hidden md:flex flex-1 max-w-md">
+          {typeof window !== 'undefined' && user && (
+            <div className="hidden md:flex flex-1 max-w-md ml-12">
               <div className="relative w-full">
                 <input
                   type="text"
-                  placeholder="Search Post"
-                  className="w-full h-10 pl-10 pr-4 rounded-full border border-border bg-background"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="w-full h-10 pl-10 pr-4 rounded-full border border-border bg-background transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -119,9 +134,9 @@ export default function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  <DropdownMenuItem  onClick={() => router.push('/profile')}>
                     <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span >Profile</span>
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />

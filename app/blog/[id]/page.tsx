@@ -117,7 +117,7 @@ export default function BlogDetail() {
         </div>
 
         {/* Blog Görseli */}
-        <div className="mb-8 rounded-xl overflow-hidden">
+        <div className="mb-8 rounded-xl overflow-hidden px-12">
           <Image
             src={getImageUrl(blog.image)}
             alt={blog.title}
@@ -129,7 +129,7 @@ export default function BlogDetail() {
         </div>
 
         {/* Blog İçeriği */}
-        <div className="prose prose-lg dark:prose-invert max-w-none">
+        <div className="prose prose-lg dark:prose-invert max-w-none px-12">
           <div dangerouslySetInnerHTML={{ __html: blog.content }} />
         </div>
 

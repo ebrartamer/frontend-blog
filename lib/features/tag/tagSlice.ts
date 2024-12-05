@@ -20,6 +20,7 @@ const initialState: TagState = {
 export const fetchTags = createAsyncThunk('tag/fetchTags', async () => {
   const response = await fetch('http://localhost:5000/api/tags');
   const data = await response.json();
+  console.log(" TAGS ",data)
   if (!response.ok) throw new Error(data.message);
   return data.data;
 });
