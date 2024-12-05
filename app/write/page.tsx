@@ -1,195 +1,164 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch, RootState } from '@/lib/store'
-import { uploadImage, createBlog, clearUploadedImage } from '@/lib/features/blog/blogSlice'
-import { fetchCategories } from '@/lib/features/category/categorySlice'
-import { fetchTags } from '@/lib/features/tag/tagSlice'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { toast } from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
-import { ImagePlus, Loader2 } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Image as ImageIcon, X, Save } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "react-hot-toast"
 
 export default function WritePage() {
-  const dispatch = useDispatch<AppDispatch>()
+  const [title, setTitle] = useState("")
+  const [content, setContent] = useState("")
+  const [image, setImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>("")
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  
-  const { isLoading: blogLoading, uploadedImageUrl, error: blogError } = useSelector((state: RootState) => state.blog)
-  const { categories } = useSelector((state: RootState) => state.category)
-  const { tags } = useSelector((state: RootState) => state.tag)
 
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    categoryId: '',
-    tagsId: [] as string[],
-    image: null as File | null,
-  })
-
-  const [preview, setPreview] = useState<string | null>(null)
-
-  useEffect(() => {
-    dispatch(fetchCategories())
-    dispatch(fetchTags())
-    return () => {
-      dispatch(clearUploadedImage())
-    }
-  }, [dispatch])
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Dosya boyutu kontrolü (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Dosya boyutu 5MB\'dan küçük olmalıdır')
-        return
-      }
-
-      // Dosya tipi kontrolü
-      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-        toast.error('Sadece JPEG, JPG ve PNG dosyaları yüklenebilir')
-        return
-      }
-
-      setFormData(prev => ({ ...prev, image: file }))
-      
-      // Önizleme için
+      setImage(file)
       const reader = new FileReader()
       reader.onloadend = () => {
-        setPreview(reader.result as string)
+        setImagePreview(reader.result as string)
       }
       reader.readAsDataURL(file)
     }
   }
 
+  const removeImage = () => {
+    setImage(null)
+    setImagePreview("")
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!formData.title || !formData.content || !formData.categoryId) {
-      toast.error('Lütfen gerekli alanları doldurun')
-      return
-    }
-
+    setIsLoading(true)
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const result = await dispatch(createBlog({ 
-        ...formData,
-        author: user.id,
-        image: formData.image || undefined 
-      })).unwrap()
-      toast.success('Blog başarıyla oluşturuldu')
-      router.push(`/blog/${result._id}`)
-    } catch (error: any) {
-      toast.error(error.message || 'Blog oluşturulurken bir hata oluştu')
+      // Blog submission will be handled here
+      toast.success("Blog post created successfully!")
+      router.push("/profile")
+    } catch (error) {
+      toast.error("An error occurred")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Yeni Blog Yazısı</h1>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium mb-2">Başlık</label>
-          <Input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="Blog başlığı"
-            className="w-full"
-          />
-        </div>
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 py-8 px-28">
+      <div className="container mx-auto px-4 ">
+        <h1 className="text-2xl font-bold font-sans text-primary dark:text-white mb-8">
+          New Blog Post
+        </h1>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">İçerik</label>
-          <textarea
-            value={formData.content}
-            onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-            placeholder="Blog içeriği"
-            className="w-full min-h-[200px] p-3 rounded-md border border-input"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex gap-6">
+            {/* Left Side - Title and Content */}
+            <div className="flex-1 space-y-6">
+              {/* Blog Title */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+                <h2 className="text-lg font-bold font-sans text-primary dark:text-white mb-4">
+                  Blog Title
+                </h2>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Write an engaging title..."
+                  className="font-sans text-lg"
+                />
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Kategori</label>
-          <select
-            value={formData.categoryId}
-            onChange={(e) => setFormData(prev => ({ ...prev, categoryId: e.target.value }))}
-            className="w-full p-2 rounded-md border border-input"
-          >
-            <option value="">Kategori seçin</option>
-            {categories?.map((category: any) => (
-              <option key={category._id} value={category._id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Etiketler</label>
-          <select
-            multiple
-            value={formData.tagsId}
-            onChange={(e) => {
-              const values = Array.from(e.target.selectedOptions, option => option.value)
-              setFormData(prev => ({ ...prev, tagsId: values }))
-            }}
-            className="w-full p-2 rounded-md border border-input"
-          >
-            {tags?.map((tag: any) => (
-              <option key={tag._id} value={tag._id}>
-                {tag.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-gray-500 mt-1">Birden fazla seçim için Ctrl/Cmd tuşunu kullanın</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Görsel</label>
-          <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById('image-upload')?.click()}
-              className="flex items-center gap-2"
-            >
-              <ImagePlus className="w-4 h-4" />
-              Görsel Seç
-            </Button>
-            <input
-              id="image-upload"
-              type="file"
-              accept="image/jpeg,image/jpg,image/png"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </div>
-          {preview && (
-            <div className="mt-4">
-              <img src={preview} alt="Preview" className="max-w-xs rounded-lg" />
+              {/* Blog Content */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+                <h2 className="text-lg font-bold font-sans text-primary dark:text-white mb-4">
+                  Blog Content
+                </h2>
+                <div className="prose prose-lg max-w-none">
+                  <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Write your blog content here..."
+                    className="w-full min-h-[400px] p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-accent focus:border-transparent outline-none resize-y font-sans"
+                  />
+                </div>
+              </div>
             </div>
-          )}
-        </div>
 
-        <Button
-          type="submit"
-          disabled={blogLoading}
-          className="w-full"
-        >
-          {blogLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Yükleniyor...
-            </>
-          ) : (
-            'Blog Yayınla'
-          )}
-        </Button>
-      </form>
+            {/* Right Side - Image */}
+            <div className="w-1/3">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 sticky top-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold font-sans text-primary dark:text-white">
+                    Blog Image
+                  </h2>
+                  {imagePreview && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={removeImage}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                {imagePreview ? (
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    <img
+                      src={imagePreview}
+                      alt="Blog image"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <label className="block w-full aspect-video rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-accent dark:hover:border-accent transition-colors cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <ImageIcon className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" />
+                      <p className="text-sm text-gray-500 dark:text-gray-400 font-sans">
+                        Click or drag to upload image
+                      </p>
+                    </div>
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar - Publishing Buttons */}
+          <div className="bg-transparent p-4 mt-8">
+            <div className="flex justify-end gap-4">
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                className="font-sans"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                className="font-sans bg-accent hover:bg-accent/90 text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Publish
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   )
-} 
+}
