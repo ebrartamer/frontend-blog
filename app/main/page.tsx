@@ -84,7 +84,7 @@ export default function MainContent() {
               blogs.map((blog: any) => (
                 blog && blog.author && (
                   <Link href={`/blog/${blog._id}`} key={blog._id}>
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 hover:shadow-md transition-all duration-200">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 my-4 hover:shadow-md transition-all duration-200">
                       <div className="flex gap-6">
                         <div className="flex-1">
                           {/* Yazar Bilgileri */}
