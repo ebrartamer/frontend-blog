@@ -1,16 +1,40 @@
 'use client'
 
-import { useSelector } from 'react-redux'
-import { RootState } from '@/lib/store'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState, AppDispatch } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Calendar, Edit, Image as ImageIcon, Mail, BookOpen, Heart, MessageSquare } from 'lucide-react'
 import Image from 'next/image'
 import Link from "next/link"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { fetchBlogs } from '@/lib/features/blog/blogSlice'
 
 export default function ProfilePage() {
+  const dispatch = useDispatch<AppDispatch>()
   const { user } = useSelector((state: RootState) => state.auth)
+  const { blogs } = useSelector((state: RootState) => state.blog)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    dispatch(fetchBlogs())
+  }, [dispatch])
+
+  const userBlogs = blogs?.filter(blog => blog?.author?._id === user?.id)
+  const totalComments = userBlogs?.reduce((acc, blog) => acc + (blog?.comments?.length || 0), 0)
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const getImageUrl = (image?: string) => {
+    if (!image) return 'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?q=80&w=2070&auto=format&fit=crop'
+    if (image.startsWith('http')) return image
+    return `${process.env.NEXT_PUBLIC_API_URL}/${image}`
+  }
 
   if (!user) {
     return (
@@ -89,27 +113,23 @@ export default function ProfilePage() {
                   <BookOpen className="w-5 h-5 text-accent" />
                   <span className="font-sans font-medium">Blog Posts</span>
                 </div>
-                <span className="font-sans font-bold text-accent">0</span>
+                <span className="font-sans font-bold text-accent">{userBlogs?.length || 0}</span>
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Heart className="w-5 h-5 text-accent" />
                   <span className="font-sans font-medium">Total Likes</span>
                 </div>
-                <span className="font-sans font-bold text-accent">0</span>
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <MessageSquare className="w-5 h-5 text-accent" />
                   <span className="font-sans font-medium">Total Comments</span>
                 </div>
-                <span className="font-sans font-bold text-accent">0</span>
+                <span className="font-sans font-bold text-accent">{totalComments}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mt-6 text-sm font-sans">
-              <Calendar className="w-4 h-4" />
-              <span>Joined: January 1, 2024</span>
-            </div>
+            
           </div>
         </div>
 
@@ -127,43 +147,55 @@ export default function ProfilePage() {
 
           {/* Blog Cards */}
           <div className="space-y-4">
-            {/* Example Blog Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6  transition-colors">
-              <div className="flex gap-6">
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold font-sans text-primary dark:text-white hover:text-accent transition-colors cursor-pointer mb-2">
-                    Blog Title
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 font-sans mb-4 line-clamp-2">
-                    Blog description will be here... Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 font-sans">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>January 1, 2024</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-4 h-4" />
-                      <span>0</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>0</span>
+            {userBlogs && userBlogs.length > 0 ? (
+              userBlogs.map((blog) => (
+                <Link href={`/blog/${blog._id}`} key={blog._id}>
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 transition-colors">
+                    <div className="flex gap-6">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold font-sans text-primary dark:text-white hover:text-accent transition-colors cursor-pointer mb-2">
+                          {blog.title}
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 font-sans mb-4 line-clamp-2">
+                          {blog.content}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500 font-sans">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{formatDate(blog.createdAt)}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Heart className="w-4 h-4" />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="w-4 h-4" />
+                            <span>{blog.comments?.length || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="hidden md:block">
+                        <div className="w-32 h-24 rounded-lg overflow-hidden">
+                          <Image
+                            src={getImageUrl(blog.image)}
+                            alt={blog.title}
+                            width={128}
+                            height={96}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="hidden md:block">
-                  <div className="w-32 h-24 rounded-lg bg-gray-100 dark:bg-gray-700" />
-                </div>
+                </Link>
+              ))
+            ) : (
+              <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 font-sans mb-2">You don't have any blog posts yet.</p>
+                <p className="text-gray-500 font-sans">Are you ready to write your first blog post?</p>
               </div>
-            </div>
-
-            {/* If No Blog Posts */}
-            <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 font-sans mb-2">You don't have any blog posts yet.</p>
-              <p className="text-gray-500 font-sans">Are you ready to write your first blog post?</p>
-            </div>
+            )}
           </div>
         </div>
       </div>

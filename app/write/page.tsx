@@ -6,9 +6,13 @@ import { Image as ImageIcon, X, Save } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
-import { useSelector } from "react-redux"
-import { RootState } from "@/lib/store"
+import { useSelector, useDispatch } from "react-redux"
+import { RootState, AppDispatch } from "@/lib/store"
 import { authService } from "@/lib/services/auth.service"
+import { fetchCategories } from "@/lib/features/category/categorySlice"
+import { fetchTags } from "@/lib/features/tag/tagSlice"
+import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 
 interface User {
   token: string;
@@ -24,12 +28,20 @@ export default function WritePage() {
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
   const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>()
   const { user } = useSelector((state: RootState) => state.auth)
+  const { categories } = useSelector((state: RootState) => state.category)
+  const { tags } = useSelector((state: RootState) => state.tag)
 
   useEffect(() => {
     setIsMounted(true)
-  }, [])
+    dispatch(fetchCategories())
+    dispatch(fetchTags())
+  }, [dispatch])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -48,6 +60,14 @@ export default function WritePage() {
     setImagePreview("")
   }
 
+  const handleTagSelect = (tagId: string) => {
+    if (!selectedTags.includes(tagId)) {
+      setSelectedTags([...selectedTags, tagId])
+    } else {
+      setSelectedTags(selectedTags.filter(id => id !== tagId))
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) {
@@ -62,20 +82,22 @@ export default function WritePage() {
       toast.error("Lütfen bir görsel yükleyin")
       return
     }
-
+    if (!selectedCategory) {
+      toast.error("Lütfen bir kategori seçin")
+      return
+    }
     setIsLoading(true)
     try {
       const formData = new FormData()
       const user = authService.getCurrentUser();
-      console.log("user", user)
-
       const token = authService.getToken();
 
       formData.append('title', title)
       formData.append('content', content)
       formData.append('image', image)
       formData.append('author', user?.id || '')
-
+      formData.append('categoryId', selectedCategory)
+      formData.append('tagsId', JSON.stringify(selectedTags))
 
       const response = await fetch('http://localhost:5000/api/blogs', {
         method: 'POST',
@@ -126,7 +148,7 @@ export default function WritePage() {
             />
           </div>
 
-          {/* Sağ Taraf - Görsel */}
+          {/* Sağ Taraf - Görsel ve Ayarlar */}
           <div className="w-80">
             <div className="sticky top-8 space-y-4">
               <div className="p-6 bg-muted/20 rounded-2xl backdrop-blur-sm">
@@ -154,7 +176,6 @@ export default function WritePage() {
                   <label className="block aspect-[3/2] rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-all duration-300 cursor-pointer hover:bg-muted/30">
                     <input
                       type="file"
-                      accept="image/*"
                       onChange={handleImageChange}
                       className="hidden"
                     />
@@ -166,6 +187,43 @@ export default function WritePage() {
                     </div>
                   </label>
                 )}
+
+                {/* Kategori Seçimi */}
+                <div className="mt-4">
+                  <Select 
+                    value={selectedCategory} 
+                    onValueChange={setSelectedCategory}
+                    placeholder="Kategori seçin"
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((category: any) => (
+                        <SelectItem key={category._id} value={category._id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Etiket Seçimi */}
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground mb-2">Etiketler</p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags?.map((tag: any) => (
+                      <Badge 
+                        key={tag._id} 
+                        variant={selectedTags.includes(tag._id) ? "default" : "secondary"}
+                        className="px-2 py-1 cursor-pointer"
+                        onClick={() => handleTagSelect(tag._id)}
+                      >
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Yayınla Butonu */}

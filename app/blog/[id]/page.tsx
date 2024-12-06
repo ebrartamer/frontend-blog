@@ -4,11 +4,20 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { Calendar, Heart, MessageSquare, Bookmark } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/lib/store'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'react-hot-toast'
+import { authService } from '@/lib/services/auth.service'
 
 export default function BlogDetail() {
   const params = useParams()
   const [blog, setBlog] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [comment, setComment] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { user } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -29,6 +38,55 @@ export default function BlogDetail() {
       fetchBlog()
     }
   }, [params.id])
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const token = authService.getToken();
+ 
+    if (!user) {
+      toast.error('Yorum yapmak için giriş yapmalısınız')
+      return
+    }
+
+    if (!comment.trim()) {
+      toast.error('Yorum boş olamaz')
+      return
+    }
+
+    setIsSubmitting(true)
+    console.log(token , "token")
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: comment
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success('Yorumunuz eklendi')
+        setComment('')
+        // Blog'u yeniden yükle
+        const blogResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}`)
+        const blogData = await blogResponse.json()
+        if (blogData.success) {
+          setBlog(blogData.data)
+        }
+      } else {
+        toast.error(data.message || 'Yorum eklenirken bir hata oluştu')
+      }
+    } catch (error) {
+      toast.error('Yorum eklenirken bir hata oluştu')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('tr-TR', {
@@ -41,7 +99,7 @@ export default function BlogDetail() {
   const getImageUrl = (image?: string) => {
     if (!image) return 'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?q=80&w=2070&auto=format&fit=crop'
     if (image.startsWith('http')) return image
-    return `${process.env.NEXT_PUBLIC_API_URL}/uploads/${image}`
+    return `${process.env.NEXT_PUBLIC_API_URL}/${image}`
   }
 
   if (loading) {
@@ -157,6 +215,29 @@ export default function BlogDetail() {
           <h2 className="text-2xl font-bold text-primary dark:text-white mb-6">
             Yorumlar ({blog.comments?.length || 0})
           </h2>
+
+          {/* Yorum Yazma Formu */}
+          {user ? (
+            <form onSubmit={handleCommentSubmit} className="mb-8">
+              <Textarea
+                placeholder="Yorumunuzu yazın..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="mb-4"
+              />
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-accent hover:bg-accent/90"
+              >
+                {isSubmitting ? 'Gönderiliyor...' : 'Yorum Yap'}
+              </Button>
+            </form>
+          ) : (
+            <div className="text-center mb-8">
+              <p className="text-gray-500">Yorum yapmak için giriş yapmalısınız.</p>
+            </div>
+          )}
           
           {blog.comments?.length > 0 ? (
             <div className="space-y-6">

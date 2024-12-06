@@ -1,7 +1,7 @@
 "use client"
 
 import { PlusIcon, Calendar, Heart, MessageSquare } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/lib/store"
 import { fetchCategories } from "@/lib/features/category/categorySlice"
@@ -17,6 +17,7 @@ export default function MainContent() {
   const { blogs, isLoading: blogsLoading } = useSelector((state: RootState) => state.blog);
   const searchParams = useSearchParams();
   const searchTerm = searchParams.get('search')?.toLowerCase();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -38,15 +39,21 @@ export default function MainContent() {
   }
 
   const filteredBlogs = blogs?.filter(blog => {
-    if (!searchTerm) return true;
-    
-    return (
+    const matchesSearch = !searchTerm || (
       blog?.title?.toLowerCase().includes(searchTerm) ||
       blog?.content?.toLowerCase().includes(searchTerm) ||
       blog?.author?.username?.toLowerCase().includes(searchTerm)
-
     );
+    console.log(blog)
+    console.log(blog?.categoryId?._id, selectedCategory)
+    const matchesCategory = !selectedCategory || blog?.categoryId?._id === selectedCategory;
+
+    return matchesSearch && matchesCategory;
   });
+
+  const handleCategoryClick = (categoryId: string) => {
+    setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
+  };
 
   return (
     <main className="container mx-auto mt-12 px-4 lg:px-24">
@@ -56,20 +63,27 @@ export default function MainContent() {
           <div className="w-full">
             <div className="container border-b border-gray-200 mx-auto flex items-center space-x-6 pb-4 px-4">
               {/* "+" Button */}
-              <button className="flex items-center justify-center w-8 h-8 hover:bg-blue-100">
+              <button 
+                className="flex items-center justify-center w-8 h-8 hover:bg-blue-100"
+                onClick={() => setSelectedCategory(null)}
+              >
                 <PlusIcon />
               </button>
 
               {/* Menu Items */}
               <ul className="flex items-center space-x-6 overflow-x-auto">
                 {!categoriesLoading && categories && categories.length > 0 && categories.map((category: any) => (
-                  <li key={category.name}>
-                    <Link
-                      href={`/category/${category.name}`}
-                      className="text-m font-medium text-gray-700 hover:text-black transition-colors whitespace-nowrap"
+                  <li key={category._id}>
+                    <button
+                      onClick={() => handleCategoryClick(category._id)}
+                      className={`text-m font-medium transition-colors whitespace-nowrap ${
+                        selectedCategory === category._id 
+                          ? 'text-accent' 
+                          : 'text-gray-700 hover:text-black'
+                      }`}
                     >
                       {category.name}
-                    </Link>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -134,7 +148,7 @@ export default function MainContent() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Heart className="w-4 h-4" />
-                              <span className="font-sans">0</span>
+                              <span className="font-sans">{blog.likes?.length || 0}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <MessageSquare className="w-4 h-4" />
