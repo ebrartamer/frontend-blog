@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { Calendar, Heart, MessageSquare, Bookmark } from 'lucide-react'
+import { Calendar, Heart, MessageSquare, Bookmark, Send, Bold, Italic } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
 import { Button } from '@/components/ui/button'
@@ -28,7 +28,7 @@ export default function BlogDetail() {
           setBlog(data.data)
         }
       } catch (error) {
-        console.error('Blog yüklenirken hata oluştu:', error)
+        console.error('Error loading blog:', error)
       } finally {
         setLoading(false)
       }
@@ -37,23 +37,24 @@ export default function BlogDetail() {
     if (params.id) {
       fetchBlog()
     }
+
   }, [params.id])
+
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const token = authService.getToken();
  
     if (!user) {
-      toast.error('Yorum yapmak için giriş yapmalısınız')
+      toast.error('Please login to comment')
       return
     }
 
     if (!comment.trim()) {
-      toast.error('Yorum boş olamaz')
+      toast.error('Comment cannot be empty')
       return
     }
 
     setIsSubmitting(true)
-    console.log(token , "token")
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}/comments`, {
@@ -70,28 +71,27 @@ export default function BlogDetail() {
       const data = await response.json()
 
       if (data.success) {
-        toast.success('Yorumunuz eklendi')
+        toast.success('Comment added successfully')
         setComment('')
-        // Blog'u yeniden yükle
         const blogResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}`)
         const blogData = await blogResponse.json()
         if (blogData.success) {
           setBlog(blogData.data)
         }
       } else {
-        toast.error(data.message || 'Yorum eklenirken bir hata oluştu')
+        toast.error(data.message || 'Error adding comment')
       }
     } catch (error) {
-      toast.error('Yorum eklenirken bir hata oluştu')
+      toast.error('Error adding comment')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('tr-TR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'long', 
       day: 'numeric'
     })
   }
@@ -100,6 +100,32 @@ export default function BlogDetail() {
     if (!image) return 'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?q=80&w=2070&auto=format&fit=crop'
     if (image.startsWith('http')) return image
     return `${process.env.NEXT_PUBLIC_API_URL}/${image}`
+  }
+
+  const handleBoldClick = () => {
+    const textarea = document.querySelector('textarea')
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const text = textarea.value
+      const before = text.substring(0, start)
+      const selection = text.substring(start, end)
+      const after = text.substring(end)
+      setComment(`${before}**${selection}**${after}`)
+    }
+  }
+
+  const handleItalicClick = () => {
+    const textarea = document.querySelector('textarea')
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const text = textarea.value
+      const before = text.substring(0, start)
+      const selection = text.substring(start, end)
+      const after = text.substring(end)
+      setComment(`${before}_${selection}_${after}`)
+    }
   }
 
   if (loading) {
@@ -123,8 +149,8 @@ export default function BlogDetail() {
     return (
       <div className="container mx-auto mt-12 px-4 lg:px-24">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Blog bulunamadı</h1>
-          <p className="text-gray-600">İstediğiniz blog yazısına ulaşılamadı.</p>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Blog not found</h1>
+          <p className="text-gray-600">The requested blog post could not be found.</p>
         </div>
       </div>
     )
@@ -133,20 +159,20 @@ export default function BlogDetail() {
   return (
     <main className="container mx-auto mt-12 px-4  lg:px-24">
       <article className="max-w-4xl mx-auto">
-        {/* Blog Başlığı ve Meta Bilgiler */}
+        {/* Blog Title and Meta Info */}
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-primary dark:text-white mb-4">
             {blog.title}
           </h1>
           
-          {/* Yazar Bilgileri */}
+          {/* Author Info */}
           <div className="flex justify-center items-center gap-4 my-8">
             <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white text-xl">
               {blog.author?.username?.charAt(0)?.toUpperCase() || '?'}
             </div>
             <div>
               <p className="font-medium text-lg text-primary text-start dark:text-white">
-                {blog.author?.username || 'İsimsiz Yazar'}
+                {blog.author?.username || 'Anonymous Author'}
               </p>
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
@@ -174,7 +200,7 @@ export default function BlogDetail() {
          </div>
         </div>
 
-        {/* Blog Görseli */}
+        {/* Blog Image */}
         <div className="mb-8 rounded-xl overflow-hidden px-12">
           <Image
             src={getImageUrl(blog.image)}
@@ -186,12 +212,12 @@ export default function BlogDetail() {
           />
         </div>
 
-        {/* Blog İçeriği */}
+        {/* Blog Content */}
         <div className="prose prose-lg dark:prose-invert max-w-none px-12">
           <div dangerouslySetInnerHTML={{ __html: blog.content }} />
         </div>
 
-        {/* Etiketler ve Kategoriler */}
+        {/* Tags and Categories */}
         <div className="mt-8 pt-8 border-t border-gray-200">
           <div className="flex flex-wrap gap-2">
             {blog.categoryId && (
@@ -210,32 +236,56 @@ export default function BlogDetail() {
           </div>
         </div>
 
-        {/* Yorumlar Bölümü */}
+        {/* Comments Section */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-primary dark:text-white mb-6">
-            Yorumlar ({blog.comments?.length || 0})
+            Comments ({blog.comments?.length || 0})
           </h2>
 
-          {/* Yorum Yazma Formu */}
+          {/* Comment Form */}
           {user ? (
-            <form onSubmit={handleCommentSubmit} className="mb-8">
-              <Textarea
-                placeholder="Yorumunuzu yazın..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="mb-4"
-              />
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="w-full bg-accent hover:bg-accent/90"
-              >
-                {isSubmitting ? 'Gönderiliyor...' : 'Yorum Yap'}
-              </Button>
-            </form>
+            <div className="mb-8">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <Textarea
+                  placeholder="Write your comment..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="resize-none bg-transparent border-none"
+                  rows={4}
+                />
+                <div className="flex justify-between mt-2">
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleBoldClick}
+                      variant="outline"
+                      size="icon"
+                      className="w-8 h-8 hover:bg-gray-100"
+                    >
+                      <Bold className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={handleItalicClick}
+                      variant="outline"
+                      size="icon"
+                      className="w-8 h-8 hover:bg-gray-100"
+                    >
+                      <Italic className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Button 
+                    onClick={handleCommentSubmit}
+                    disabled={isSubmitting}
+                    className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    {isSubmitting ? 'Sending...' : 'Send'}
+                  </Button>
+                </div>
+              </div>
+            </div>
           ) : (
-            <div className="text-center mb-8">
-              <p className="text-gray-500">Yorum yapmak için giriş yapmalısınız.</p>
+            <div className="text-center mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <p className="text-gray-500">Please login to comment.</p>
             </div>
           )}
           
@@ -244,7 +294,7 @@ export default function BlogDetail() {
               {blog.comments.map((comment: any) => (
                 <div
                   key={comment._id}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-6"
+                  className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 transition-all hover:shadow-md"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
@@ -252,7 +302,7 @@ export default function BlogDetail() {
                     </div>
                     <div>
                       <p className="font-medium text-primary dark:text-white">
-                        {comment.author?.username || 'İsimsiz Kullanıcı'}
+                        {comment.author?.username || 'Anonymous User'}
                       </p>
                       <p className="text-xs text-gray-500">
                         {formatDate(comment.createdAt)}
@@ -264,8 +314,8 @@ export default function BlogDetail() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">
-              Henüz yorum yapılmamış. İlk yorumu siz yapın!
+            <p className="text-gray-500 text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              No comments yet. Be the first to comment!
             </p>
           )}
         </div>
