@@ -19,8 +19,7 @@ const getInitialState = (): AuthState => {
   console.log('Getting initial state...');
   const user = authService.getCurrentUser();
   const token = authService.getToken();
-  console.log('Initial user:', user);
-  console.log('Initial token:', token);
+ 
   
   return {
     user,

@@ -6,6 +6,16 @@ import { Image as ImageIcon, X, Save } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "react-hot-toast"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { authService } from "@/lib/services/auth.service"
+
+interface User {
+  token: string;
+  username?: string;
+  email?: string;
+  _id?: string;
+}
 
 export default function WritePage() {
   const [isMounted, setIsMounted] = useState(false)
@@ -15,6 +25,7 @@ export default function WritePage() {
   const [imagePreview, setImagePreview] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { user } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
     setIsMounted(true)
@@ -47,20 +58,53 @@ export default function WritePage() {
       toast.error("Lütfen içerik ekleyin")
       return
     }
+    if (!image) {
+      toast.error("Lütfen bir görsel yükleyin")
+      return
+    }
 
     setIsLoading(true)
     try {
-      // Blog gönderme işlemi burada yapılacak
+      const formData = new FormData()
+      const user = authService.getCurrentUser();
+      console.log("user", user)
+
+      const token = authService.getToken();
+
+      formData.append('title', title)
+      formData.append('content', content)
+      formData.append('image', image)
+      formData.append('author', user?.id || '')
+
+
+      const response = await fetch('http://localhost:5000/api/blogs', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error('Blog oluşturulamadı')
+      }
+
+      const data = await response.json()
       toast.success("Blog başarıyla oluşturuldu!")
       router.push("/profile")
     } catch (error) {
       toast.error("Bir hata oluştu")
+      console.error(error)
     } finally {
       setIsLoading(false)
     }
   }
 
   if (!isMounted) return null
+  if (!user) {
+    router.push('/auth/login')
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-background relative">

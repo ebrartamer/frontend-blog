@@ -34,7 +34,7 @@ export default function MainContent() {
   const getImageUrl = (image?: string) => {
     if (!image) return 'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?q=80&w=2070&auto=format&fit=crop'
     if (image.startsWith('http')) return image
-    return `${process.env.NEXT_PUBLIC_API_URL}/uploads/${image}`
+    return `${process.env.NEXT_PUBLIC_API_URL}/${image}`
   }
 
   const filteredBlogs = blogs?.filter(blog => {
@@ -43,8 +43,8 @@ export default function MainContent() {
     return (
       blog?.title?.toLowerCase().includes(searchTerm) ||
       blog?.content?.toLowerCase().includes(searchTerm) ||
-      blog?.author?.username?.toLowerCase().includes(searchTerm) ||
-      blog?.categoryId?.name?.toLowerCase().includes(searchTerm)
+      blog?.author?.username?.toLowerCase().includes(searchTerm)
+
     );
   });
 
@@ -147,7 +147,7 @@ export default function MainContent() {
                         <div className="hidden md:block">
                           <div className="w-40 h-32 rounded-xl overflow-hidden">
                             <Image
-                              src={getImageUrl(blog.image)}
+                              src={getImageUrl(blog?.image)}
                               alt={blog.title || 'Blog görseli'}
                               width={160}
                               height={128}
@@ -188,7 +188,7 @@ export default function MainContent() {
                     <div className="flex items-center gap-4  group">
                       <div className="w-16 h-16 rounded-lg my-2 overflow-hidden">
                         <Image
-                          src={getImageUrl(blog.image)}
+                          src={getImageUrl(blog?.image)}
                           alt={blog.title || 'Blog görseli'}
                           width={64}
                           height={64}

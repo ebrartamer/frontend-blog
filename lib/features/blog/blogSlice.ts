@@ -10,7 +10,7 @@ interface Blog {
     username: string;
     email: string;
   };
-  categoryId: {
+  category: {
     _id: string;
     name: string;
   };

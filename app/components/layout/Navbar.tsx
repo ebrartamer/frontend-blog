@@ -22,12 +22,17 @@ import {useDebounce} from "@/lib/hooks/useDebounce"
 
 export default function Navbar() {
   const { user } = useSelector((state: RootState) => state.auth)
-  const { theme } = useTheme()
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (debouncedSearchTerm) {
@@ -53,14 +58,20 @@ export default function Navbar() {
     { href: "/write", label: "Write" },
   ]
 
+  if (!mounted) {
+    return null
+  }
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-24">
       <div className="container flex h-16 justify-between items-center">
         {/* Logo ve Sol Menü */}
         <div className="flex flex-1 items-center md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href={
+            user ? '/main' : '/'
+          } className="flex items-center space-x-2">
             <Image
-              src={theme === 'dark' ? '/logoDark.svg' : '/postLogo.svg'}
+              src={resolvedTheme === 'dark' ? '/logoDark.svg' : '/postLogo.svg'}
               alt="Blog Logo"
               width={100}
               height={64}
@@ -68,7 +79,7 @@ export default function Navbar() {
             />
           </Link>
           {/* Search Box - Sadece giriş yapmış kullanıcılara göster */}
-          {typeof window !== 'undefined' && user && (
+          {user && (
             <div className="hidden md:flex flex-1 max-w-md ml-12">
               <div className="relative w-full">
                 <input
