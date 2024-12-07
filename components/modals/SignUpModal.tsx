@@ -28,9 +28,7 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      console.log('Submitting form data:', formData);
       const result = await dispatch(register(formData)).unwrap()
-      console.log('Register success:', result);
       
       if (result.user) {
         toast.success("Kayıt başarılı!")

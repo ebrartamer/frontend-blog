@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'react-hot-toast'
 import { authService } from '@/lib/services/auth.service'
+import ReactMarkdown from 'react-markdown'
 
 export default function BlogDetail() {
   const params = useParams()
@@ -183,21 +184,7 @@ export default function BlogDetail() {
               </div>
             </div>
           </div>
-         <div className='flex jlex-row text-primary justify-between border-y border-gray-200 py-2 items-center gap-4'>
-                <div className='flex flex-row gap-4'>
-                <div className="flex hover:text-red-500 items-center gap-1">
-                  <Heart className="w-4 h-4" />
-                  <span>{blog.likes?.length || 0} </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>{blog.comments?.length || 0} </span>
-                </div>
-                </div>
-                <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                  <Bookmark className="w-4 h-4" />
-                </button>
-         </div>
+         
         </div>
 
         {/* Blog Image */}
@@ -214,7 +201,7 @@ export default function BlogDetail() {
 
         {/* Blog Content */}
         <div className="prose prose-lg dark:prose-invert max-w-none px-12">
-          <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+          <ReactMarkdown>{blog.content}</ReactMarkdown>
         </div>
 
         {/* Tags and Categories */}
@@ -309,7 +296,9 @@ export default function BlogDetail() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300">{comment.content}</p>
+                  <div className="text-gray-600 dark:text-gray-300">
+                    <ReactMarkdown>{comment.content}</ReactMarkdown>
+                  </div>
                 </div>
               ))}
             </div>

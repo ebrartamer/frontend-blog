@@ -44,8 +44,6 @@ export default function MainContent() {
       blog?.content?.toLowerCase().includes(searchTerm) ||
       blog?.author?.username?.toLowerCase().includes(searchTerm)
     );
-    console.log(blog)
-    console.log(blog?.categoryId?._id, selectedCategory)
     const matchesCategory = !selectedCategory || blog?.categoryId?._id === selectedCategory;
 
     return matchesSearch && matchesCategory;
@@ -61,19 +59,18 @@ export default function MainContent() {
         {/* Sol Sütun (8 birim) */}
         <div className="w-full md:w-2/3">
           <div className="w-full">
-            <div className="container border-b border-gray-200 mx-auto flex items-center space-x-6 pb-4 px-4">
+            <div className="container border-b border-gray-200 mx-auto flex items-center space-x-6 pb-4 px-4 overflow-x-auto [&::-webkit-scrollbar]:h-0">
               {/* "+" Button */}
               <button 
-                className="flex items-center justify-center w-8 h-8 hover:bg-blue-100"
+                className="flex items-center justify-center w-8 h-8 border-r border-gray-200 flex-shrink-0"
                 onClick={() => setSelectedCategory(null)}
               >
-                <PlusIcon />
+               All
               </button>
-
               {/* Menu Items */}
-              <ul className="flex items-center space-x-6 overflow-x-auto">
+              <ul className="flex items-center space-x-6 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:h-0">
                 {!categoriesLoading && categories && categories.length > 0 && categories.map((category: any) => (
-                  <li key={category._id}>
+                  <li key={category._id} className="flex-shrink-0">
                     <button
                       onClick={() => handleCategoryClick(category._id)}
                       className={`text-m font-medium transition-colors whitespace-nowrap ${

@@ -16,7 +16,6 @@ interface AuthState {
 
 // Initial state'i localStorage'dan al
 const getInitialState = (): AuthState => {
-  console.log('Getting initial state...');
   const user = authService.getCurrentUser();
   const token = authService.getToken();
  
@@ -36,9 +35,7 @@ export const register = createAsyncThunk(
   'auth/register',
   async (data: { username: string; email: string; password: string }, { rejectWithValue }) => {
     try {
-      console.log('Register thunk data:', data);
       const response = await authService.register(data);
-      console.log('Register thunk response:', response);
       return response;
     } catch (error: any) {
       console.error('Register thunk error:', error);
@@ -51,9 +48,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async (data: { username: string; password: string }, { rejectWithValue }) => {
     try {
-      console.log('Login thunk data:', data);
       const response = await authService.login(data);
-      console.log('Login thunk response:', response);
       return response;
     } catch (error: any) {
       console.error('Login thunk error:', error);
@@ -86,12 +81,10 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(register.fulfilled, (state, action) => {
-        console.log('Register fulfilled payload:', action.payload);
         state.loading = false;
         if (action.payload?.user) {
           state.user = action.payload.user;
           state.token = action.payload.token;
-          console.log('User state updated:', state.user);
           // LocalStorage'a kaydet
           localStorage.setItem('token', action.payload.token);
           localStorage.setItem('user', JSON.stringify(action.payload.user));
@@ -112,12 +105,10 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        console.log('Login fulfilled payload:', action.payload);
         state.loading = false;
         if (action.payload?.user) {
           state.user = action.payload.user;
           state.token = action.payload.token;
-          console.log('User state updated:', state.user);
         } else {
           console.error('Login fulfilled but no user in payload:', action.payload);
         }

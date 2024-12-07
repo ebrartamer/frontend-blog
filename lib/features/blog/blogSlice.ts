@@ -51,7 +51,6 @@ export const fetchBlogs = createAsyncThunk(
   async () => {
     const response = await fetch('http://localhost:5000/api/blogs');
     const data = await response.json();
-    console.log(data)
     if (!response.ok) throw new Error(data.message);
     return data.data;
   }

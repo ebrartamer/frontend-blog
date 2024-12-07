@@ -31,13 +31,8 @@ interface AuthResponse {
 export const authService = {
   async register(data: RegisterData) {
     try {
-      console.log('Register request:', {
-        url: `${API_URL}/api/users/register`,
-        data: data
-      });
 
       const response = await axios.post<AuthResponse>(`${API_URL}/api/users/register`, data);
-      console.log('Register response:', response.data);
 
       // Response kontrolü
       if (!response.data || !response.data.success) {
@@ -90,13 +85,9 @@ export const authService = {
 
   async login(data: LoginData) {
     try {
-      console.log('Login request:', {
-        url: `${API_URL}/api/users/login`,
-        data: data
-      });
+      
 
       const response = await axios.post<AuthResponse>(`${API_URL}/api/users/login`, data);
-      console.log('Login response:', response.data);
 
       // Backend'den gelen veriyi kontrol et
       if (!response.data || !response.data.success) {
