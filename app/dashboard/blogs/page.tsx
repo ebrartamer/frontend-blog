@@ -3,11 +3,18 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
-import { Plus, Pencil, Trash2, Users } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { blogService } from '@/lib/services/blog.service'
 import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 interface Blog {
   _id: string
@@ -19,12 +26,33 @@ interface Blog {
     username: string
   }
   createdAt: string
+  comments?: {
+    _id: string;
+    content: string;
+    author: {
+      username: string;
+    };
+    createdAt: string;
+  }[];
+}
+
+interface Comment {
+  _id: string;
+  content: string;
+  author: {
+    username: string;
+  };
+  createdAt: string;
 }
 
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
   const { user } = useSelector((state: RootState) => state.auth)
+  const [selectedBlogComments, setSelectedBlogComments] = useState<Comment[]>([]);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [selectedBlogTitle, setSelectedBlogTitle] = useState('');
+  const [selectedBlogId, setSelectedBlogId] = useState('');
 
   const fetchBlogs = async () => {
     try {
@@ -61,6 +89,64 @@ export default function BlogsPage() {
   const canDeleteBlog = (authorId: string) => {
     if (!user) return false;
     return isAdmin || authorId === user.id;
+  };
+
+  // Yorumları getir
+  const fetchComments = async (blogId: string, blogTitle: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${blogId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSelectedBlogComments(data.data.comments);
+        setSelectedBlogTitle(blogTitle);
+        setSelectedBlogId(blogId);
+        setIsCommentsOpen(true);
+      } else {
+        toast.error('Yorumlar yüklenirken bir hata oluştu');
+      }
+    } catch (error) {
+      toast.error('Yorumlar yüklenirken bir hata oluştu');
+    }
+  };
+
+  // Yorumu sil
+  const handleDeleteComment = async (blogId: string, commentId: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${blogId}/comments/${commentId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (response.ok) {
+        toast.success('Yorum başarıyla silindi');
+        // Yorumları güncelle
+        setSelectedBlogComments(prev => 
+          prev.filter(comment => comment._id !== commentId)
+        );
+      } else {
+        toast.error('Yorum silinirken bir hata oluştu');
+      }
+    } catch (error) {
+      toast.error('Yorum silinirken bir hata oluştu');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   if (loading) {
@@ -143,6 +229,15 @@ export default function BlogsPage() {
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
                       )}
+                      <Button
+                        onClick={() => fetchComments(blog._id, blog.title)}
+                        variant="ghost"
+                        size="icon"
+                        className="hover:bg-gray-100"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span className="ml-1 text-xs">{blog.comments?.length || 0}</span>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -151,6 +246,58 @@ export default function BlogsPage() {
           </table>
         </div>
       </div>
+
+      {/* Yorumlar Dialog */}
+      <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedBlogTitle} - Yorumlar</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {selectedBlogComments.length > 0 ? (
+              selectedBlogComments.map((comment) => (
+                <div 
+                  key={comment._id} 
+                  className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg flex justify-between items-start"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                        {comment.author?.username?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">
+                          {comment.author?.username || 'Anonim'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(comment.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {comment.content}
+                    </p>
+                  </div>
+                  
+                  <Button
+                    onClick={() => handleDeleteComment(selectedBlogId, comment._id)}
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-4">
+                Henüz yorum yapılmamış
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

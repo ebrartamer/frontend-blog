@@ -373,7 +373,7 @@ export default function BlogDetail() {
           
           {blog.comments?.length > 0 ? (
             <div className="space-y-6">
-              {blog.comments.filter(comment => !comment.parentId).map((comment: Comment) => (
+              {blog.comments.filter((comment: Comment) => !comment.parentId).map((comment: Comment) => (
                 <div key={comment._id} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
                   {/* Yorum Başlığı */}
                   <div className="flex items-center gap-3 mb-3">
