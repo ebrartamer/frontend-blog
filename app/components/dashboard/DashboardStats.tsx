@@ -25,18 +25,18 @@ export default function DashboardStats() {
     const fetchStats = async () => {
       try {
         const [usersResponse, blogsResponse, likesResponse, visitorsResponse] = await Promise.all([
-          fetch('http://localhost:5000/api/users', {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }),
-          fetch('http://localhost:5000/api/blogs', {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }),
-          fetch('http://localhost:5000/api/blogs/stats/total-likes'),
-          fetch('http://localhost:5000/api/visitors', {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/stats/total-likes`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/visitors`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
