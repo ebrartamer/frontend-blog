@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { Calendar, Heart, MessageSquare, Bookmark, Send, Bold, Italic } from 'lucide-react'
+import { Calendar, Heart, MessageSquare, Bookmark, Send, Bold, Italic, Reply } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'react-hot-toast'
 import { authService } from '@/lib/services/auth.service'
 import ReactMarkdown from 'react-markdown'
+
+interface Comment {
+  _id: string;
+  content: string;
+  author: {
+    _id: string;
+    username: string;
+  };
+  createdAt: string;
+  parentId: string | null;
+  replies: string[];
+}
 
 export default function BlogDetail() {
   const params = useParams()
@@ -20,6 +32,8 @@ export default function BlogDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const { user } = useSelector((state: RootState) => state.auth)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyContent, setReplyContent] = useState('')
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -100,7 +114,8 @@ export default function BlogDetail() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          content: comment
+          content: comment,
+          parentId: null
         })
       })
 
@@ -123,6 +138,45 @@ export default function BlogDetail() {
       setIsSubmitting(false)
     }
   }
+
+  const handleReplySubmit = async (commentId: string) => {
+    if (!user) {
+      toast.error('Yanıt vermek için giriş yapmalısınız');
+      return;
+    }
+
+    if (!replyContent.trim()) {
+      toast.error('Yanıt boş olamaz');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}/comments/${commentId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`
+        },
+        body: JSON.stringify({
+          content: replyContent
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('Yanıt başarıyla eklendi');
+        setReplyContent('');
+        setReplyingTo(null);
+        setBlog(data.data); // Güncellenmiş blog verisi
+      } else {
+        toast.error(data.message || 'Yanıt eklenirken bir hata oluştu');
+      }
+    } catch (error) {
+      console.error('Reply error:', error);
+      toast.error('Yanıt eklenirken bir hata oluştu');
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -319,32 +373,97 @@ export default function BlogDetail() {
           
           {blog.comments?.length > 0 ? (
             <div className="space-y-6">
-              {blog.comments.map((comment: any) => (
-                <div
-                  key={comment._id}
-                  className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 transition-all hover:shadow-md"
-                >
+              {blog.comments.filter(comment => !comment.parentId).map((comment: Comment) => (
+                <div key={comment._id} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+                  {/* Yorum Başlığı */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
                       {comment.author?.username?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                     <div>
                       <p className="font-medium text-primary dark:text-white">
-                        {comment.author?.username || 'Anonymous User'}
+                        {comment.author?.username || 'Anonymous'}
                       </p>
                       <p className="text-xs text-gray-500">
                         {formatDate(comment.createdAt)}
                       </p>
                     </div>
                   </div>
+
+                  {/* Yorum İçeriği */}
                   <div className="text-gray-600 dark:text-gray-300">
                     <ReactMarkdown>{comment.content}</ReactMarkdown>
                   </div>
+
+                  {/* Yanıt Verme Butonu */}
+                  <div className="mt-4">
+                    <Button
+                      onClick={() => setReplyingTo(replyingTo === comment._id ? null : comment._id)}
+                      variant="ghost"
+                      className="text-sm flex items-center gap-2"
+                    >
+                      <Reply className="w-4 h-4" />
+                      Yanıtla
+                    </Button>
+                  </div>
+
+                  {/* Yanıt Formu */}
+                  {replyingTo === comment._id && (
+                    <div className="mt-4 pl-8 border-l-2 border-gray-200">
+                      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                        <Textarea
+                          placeholder="Yanıtınızı yazın..."
+                          value={replyContent}
+                          onChange={(e) => setReplyContent(e.target.value)}
+                          className="resize-none bg-transparent border-none"
+                          rows={3}
+                        />
+                        <div className="flex justify-end mt-2">
+                          <Button
+                            onClick={() => handleReplySubmit(comment._id)}
+                            className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                          >
+                            <Send className="w-4 h-4" />
+                            Yanıtla
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Alt Yorumlar */}
+                  {blog.comments
+                    .filter((reply: Comment) => reply.parentId === comment._id)
+                    .map((reply: Comment) => (
+                      <div
+                        key={reply._id}
+                        className="mt-4 pl-8 border-l-2 border-gray-200"
+                      >
+                        <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-sm">
+                              {reply.author?.username?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm text-primary dark:text-white">
+                                {reply.author?.username || 'Anonymous'}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatDate(reply.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-gray-600 dark:text-gray-300 text-sm">
+                            <ReactMarkdown>{reply.content}</ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <p className="text-gray-500 text-center py-8">
               No comments yet. Be the first to comment!
             </p>
           )}
