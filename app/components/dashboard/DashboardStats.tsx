@@ -9,20 +9,22 @@ interface StatsData {
   totalUsers: number;
   totalPosts: number;
   totalLikes: number;
+  totalViews: number;
 }
 
 export default function DashboardStats() {
   const [statsData, setStatsData] = useState<StatsData>({
     totalUsers: 0,
     totalPosts: 0,
-    totalLikes: 0
+    totalLikes: 0,
+    totalViews: 0
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [usersResponse, blogsResponse, likesResponse] = await Promise.all([
+        const [usersResponse, blogsResponse, likesResponse, visitorsResponse] = await Promise.all([
           fetch('http://localhost:5000/api/users', {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -33,20 +35,27 @@ export default function DashboardStats() {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }),
-          fetch('http://localhost:5000/api/blogs/stats/total-likes')
+          fetch('http://localhost:5000/api/blogs/stats/total-likes'),
+          fetch('http://localhost:5000/api/visitors', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          })
         ]);
 
-        const [usersData, blogsData, likesData] = await Promise.all([
+        const [usersData, blogsData, likesData, visitorsData] = await Promise.all([
           usersResponse.json(),
           blogsResponse.json(),
-          likesResponse.json()
+          likesResponse.json(),
+          visitorsResponse.json()
         ]);
 
-        if (usersResponse.ok && blogsResponse.ok && likesResponse.ok) {
+        if (usersResponse.ok && blogsResponse.ok && likesResponse.ok && visitorsResponse.ok) {
           setStatsData({
             totalUsers: usersData.data.length,
             totalPosts: blogsData.data.length,
-            totalLikes: likesData.data.totalLikes
+            totalLikes: likesData.data.totalLikes,
+            totalViews: visitorsData.data.totalVisits
           });
         } else {
           throw new Error('Veriler alınırken bir hata oluştu');
@@ -85,8 +94,8 @@ export default function DashboardStats() {
       backgroundColor: "bg-[#1081E8]/10"
     },
     {
-      title: "Views",
-      value: "427k",
+      title: "Total Views",
+      value: statsData.totalViews.toLocaleString(),
       icon: Eye,
       color: "text-[#FF8700]",
       backgroundColor: "bg-[#FF8700]/10"
