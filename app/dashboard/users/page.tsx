@@ -97,12 +97,7 @@ export default function Users() {
             Manage all users from here.
           </p>
         </div>
-        <Link href="/dashboard/users/new">
-          <button className="flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90">
-            <Plus className="w-5 h-5" />
-            New User
-          </button>
-        </Link>
+        
       </div>
 
       {/* Users Table */}

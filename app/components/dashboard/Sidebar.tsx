@@ -18,7 +18,7 @@ const menuItems = [
   {
     href: '/dashboard/categories',
     icon: FolderOpen,
-    label: 'Categories'
+    label: 'Categories / Tags'
   },
   {
     href: '/dashboard/users',
