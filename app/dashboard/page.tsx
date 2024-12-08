@@ -2,11 +2,10 @@
 
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
-
-import DeviceUsage from '@/components/dashboard/DeviceUsage'
-import RecentPosts from '@/components/dashboard/RecentPosts'
 import DashboardStats from '../components/dashboard/DashboardStats'
 import DashboardChart from '../components/dashboard/DashboardChart'
+import RecentPosts from '../components/dashboard/RecentPosts'
+import DeviceUsage from '../components/dashboard/DeviceUsage'
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth)
@@ -25,7 +24,6 @@ export default function DashboardPage() {
       <DashboardStats />
       <DashboardChart />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-       
         <RecentPosts />
         <DeviceUsage />
       </div>

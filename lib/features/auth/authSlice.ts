@@ -13,6 +13,7 @@ interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  
 }
 
 // Initial state'i localStorage'dan al
