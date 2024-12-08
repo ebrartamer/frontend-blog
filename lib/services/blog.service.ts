@@ -63,5 +63,61 @@ export const blogService = {
       }
       throw new Error(error.message || 'Blog silme işlemi başarısız');
     }
+  },
+
+  // Blog beğenme/beğenmekten vazgeçme
+  async toggleLike(blogId: string) {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        throw new Error('Yetkilendirme token\'ı bulunamadı');
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/${blogId}/like`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message);
+        }
+
+        return data;
+    } catch (error: any) {
+        throw new Error(error.message || 'Blog beğenme işlemi başarısız');
+    }
+  },
+
+  // Blog beğeni durumunu kontrol et
+  async checkLikeStatus(blogId: string) {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        throw new Error('Yetkilendirme token\'ı bulunamadı');
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/${blogId}/like`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message);
+        }
+
+        return data.data;
+    } catch (error: any) {
+        throw new Error(error.message || 'Beğeni durumu kontrol edilemedi');
+    }
   }
 } 

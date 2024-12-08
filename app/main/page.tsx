@@ -18,6 +18,7 @@ export default function MainContent() {
   const searchParams = useSearchParams();
   const searchTerm = searchParams.get('search')?.toLowerCase();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [likedPosts, setLikedPosts] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -27,7 +28,7 @@ export default function MainContent() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('tr-TR', {
       year: 'numeric',
-      month: 'long',
+      month: 'long', 
       day: 'numeric'
     })
   }
@@ -37,6 +38,14 @@ export default function MainContent() {
     if (image.startsWith('http')) return image
     return `${process.env.NEXT_PUBLIC_API_URL}/${image}`
   }
+
+  const handleLike = (blogId: string, e: React.MouseEvent) => {
+    e.preventDefault(); // Link tıklamasını engelle
+    setLikedPosts(prev => ({
+      ...prev,
+      [blogId]: !prev[blogId]
+    }));
+  };
 
   const filteredBlogs = blogs?.filter(blog => {
     const matchesSearch = !searchTerm || (
@@ -143,10 +152,15 @@ export default function MainContent() {
                                 {blog.createdAt ? formatDate(blog.createdAt) : 'Tarih belirtilmemiş'}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Heart className="w-4 h-4" />
+                            <button 
+                              onClick={(e) => handleLike(blog._id, e)}
+                              className="flex items-center gap-2 hover:text-red-500 transition-colors"
+                            >
+                              <Heart 
+                                className={`w-4 h-4 ${likedPosts[blog._id] ? 'fill-red-500 text-red-500' : ''}`} 
+                              />
                               <span className="font-sans">{blog.likes?.length || 0}</span>
-                            </div>
+                            </button>
                             <div className="flex items-center gap-2">
                               <MessageSquare className="w-4 h-4" />
                               <span className="font-sans">{blog.comments?.length || 0}</span>

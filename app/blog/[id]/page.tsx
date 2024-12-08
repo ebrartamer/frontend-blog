@@ -18,6 +18,7 @@ export default function BlogDetail() {
   const [loading, setLoading] = useState(true)
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLiked, setIsLiked] = useState(false)
   const { user } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
@@ -27,6 +28,10 @@ export default function BlogDetail() {
         const data = await response.json()
         if (data.success) {
           setBlog(data.data)
+          // Kullanıcının daha önce beğenip beğenmediğini kontrol et
+          if (user && data.data.likes?.includes(user.id)) {
+            setIsLiked(true)
+          }
         }
       } catch (error) {
         console.error('Error loading blog:', error)
@@ -39,7 +44,37 @@ export default function BlogDetail() {
       fetchBlog()
     }
 
-  }, [params.id])
+  }, [params.id, user])
+
+  const handleLike = async () => {
+    if (!user) {
+      toast.error('Beğenmek için giriş yapmalısınız')
+      return
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}/like`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authService.getToken()}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setIsLiked(!isLiked)
+        setBlog({
+          ...blog,
+          likes: isLiked 
+            ? blog.likes.filter((id: string) => id !== user.id)
+            : [...blog.likes, user.id]
+        })
+        toast.success(isLiked ? 'Beğeni kaldırıldı' : 'Blog beğenildi')
+      }
+    } catch (error) {
+      toast.error('Bir hata oluştu')
+    }
+  }
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -180,7 +215,13 @@ export default function BlogDetail() {
                   <Calendar className="w-4 h-4" />
                   <span>{formatDate(blog.createdAt)}</span>
                 </div>
-                
+                <button
+                  onClick={handleLike}
+                  className="flex items-center gap-1 hover:text-red-500 transition-colors"
+                >
+                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                  <span>{blog.likes?.length || 0}</span>
+                </button>
               </div>
             </div>
           </div>
