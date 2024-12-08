@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authService } from './auth.service';
 
 const API_URL = 'http://localhost:5000/api/blogs'
 
@@ -29,5 +30,38 @@ export const blogService = {
       body: formData
     })
     return response.json()
+  },
+
+  // Blog sil
+  deleteBlog: async (id: string) => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Yetkilendirme token\'ı bulunamadı');
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Blog silme işlemi başarısız');
+      }
+
+      return data;
+    } catch (error: any) {
+      console.error('Blog silme hatası:', error);
+      if (error.message.includes('Token')) {
+        throw new Error('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+      }
+      throw new Error(error.message || 'Blog silme işlemi başarısız');
+    }
   }
 } 

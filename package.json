@@ -28,7 +28,9 @@
     "react-quill": "^2.0.0",
     "react-redux": "^9.1.2",
     "recharts": "^2.14.1",
-    "tailwind-merge": "^2.5.5"
+    "sonner": "^1.7.1",
+    "tailwind-merge": "^2.5.5",
+    "toast": "^0.5.4"
   },
   "devDependencies": {
     "@types/node": "^20",

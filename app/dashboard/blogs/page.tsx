@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { blogService } from '@/lib/services/blog.service'
+import { toast } from 'sonner'
+
 interface Blog {
   _id: string
   title: string
@@ -24,20 +26,42 @@ export default function BlogsPage() {
   const [loading, setLoading] = useState(true)
   const { user } = useSelector((state: RootState) => state.auth)
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const data = await blogService.getBlogs()
-        setBlogs(data)
-      } catch (error) {
-        console.error('Bloglar yüklenirken hata:', error)
-      } finally {
-        setLoading(false)
-      }
+  const fetchBlogs = async () => {
+    try {
+      const data = await blogService.getBlogs()
+      setBlogs(data)
+    } catch (error) {
+      console.error('Error loading blogs:', error)
+      toast.error('Bloglar yüklenirken bir hata oluştu')
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchBlogs()
   }, [])
+
+  const handleDelete = async (blogId: string) => {
+    if (!window.confirm('Bu blogu silmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    try {
+      await blogService.deleteBlog(blogId);
+      toast.success('Blog başarıyla silindi');
+      fetchBlogs(); // Listeyi yenile
+    } catch (error: any) {
+      console.error('Blog silme hatası:', error);
+      toast.error(error.message || 'Blog silinirken bir hata oluştu');
+    }
+  };
+
+  const isAdmin = user?.role === 'admin';
+  const canDeleteBlog = (authorId: string) => {
+    if (!user) return false;
+    return isAdmin || authorId === user.id;
+  };
 
   if (loading) {
     return (
@@ -49,23 +73,23 @@ export default function BlogsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Üst Başlık */}
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Blog Yazıları</h1>
-          <p className="text-muted-foreground mt-1">
-            Tüm blog yazılarınızı buradan yönetebilirsiniz.
+          <h1 className="text-3xl font-sans text-primary font-bold">Blog Posts</h1>
+          <p className="text-muted-foreground font-sans text-secondary mt-1">
+            Manage all your blog posts from here.
           </p>
         </div>
         <Link href="/write">
           <button className="flex items-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90">
             <Plus className="w-5 h-5" />
-            Yeni Blog
+            New Blog
           </button>
         </Link>
       </div>
 
-      {/* Blog Listesi */}
+      {/* Blog List */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -75,13 +99,13 @@ export default function BlogsPage() {
                   Blog
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Yazar
+                  Author
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Tarih
+                  Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  İşlemler
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -91,12 +115,7 @@ export default function BlogsPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-12 relative rounded overflow-hidden">
-                        <Image
-                          src={`http://localhost:5000${blog.image}`}
-                          alt={blog.title}
-                          fill
-                          className="object-cover"
-                        />
+                       
                       </div>
                       <div>
                         <div className="font-medium">{blog.title}</div>
@@ -111,17 +130,19 @@ export default function BlogsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm">
-                      {new Date(blog.createdAt).toLocaleDateString('tr-TR')}
+                      {new Date(blog.createdAt).toLocaleDateString('en-US')}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                        <Pencil className="w-4 h-4 text-blue-500" />
-                      </button>
-                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </button>
+                    <div className="flex items-center justify-center gap-2">
+                      {canDeleteBlog(blog.author._id) && (
+                        <button 
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
+                          onClick={() => handleDelete(blog._id)}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

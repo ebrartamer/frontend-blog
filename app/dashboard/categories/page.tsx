@@ -42,7 +42,7 @@ export default function Categories() {
         const response = await fetch(`http://localhost:5000/api/categories/${id}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${user?.token}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         })
 
@@ -66,7 +66,7 @@ export default function Categories() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(updatedCategory)
       })

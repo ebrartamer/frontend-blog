@@ -5,6 +5,7 @@ interface User {
   id: string;
   username: string;
   email: string;
+  role: "admin" | "user";
 }
 
 interface AuthState {
@@ -19,12 +20,11 @@ const getInitialState = (): AuthState => {
   const user = authService.getCurrentUser();
   const token = authService.getToken();
  
-  
   return {
     user,
     token,
     loading: false,
-    error: null,
+    error: null
   };
 };
 
@@ -83,11 +83,17 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload?.user) {
-          state.user = action.payload.user;
+          const user: User = {
+            id: action.payload.user.id,
+            username: action.payload.user.username,
+            email: action.payload.user.email,
+            role: action.payload.user.role as "admin" | "user"
+          };
+          state.user = user;
           state.token = action.payload.token;
           // LocalStorage'a kaydet
           localStorage.setItem('token', action.payload.token);
-          localStorage.setItem('user', JSON.stringify(action.payload.user));
+          localStorage.setItem('user', JSON.stringify(user));
         } else {
           console.error('No user data in register response');
         }
@@ -107,8 +113,17 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload?.user) {
-          state.user = action.payload.user;
+          const user: User = {
+            id: action.payload.user.id,
+            username: action.payload.user.username,
+            email: action.payload.user.email,
+            role: action.payload.user.role as "admin" | "user"
+          };
+          state.user = user;
           state.token = action.payload.token;
+          // LocalStorage'a kaydet
+          localStorage.setItem('token', action.payload.token);
+          localStorage.setItem('user', JSON.stringify(user));
         } else {
           console.error('Login fulfilled but no user in payload:', action.payload);
         }
@@ -124,6 +139,9 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
+        // LocalStorage'dan temizle
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       });
   },
 });
