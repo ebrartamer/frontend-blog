@@ -41,7 +41,7 @@ export default function RootLayout({
           >
             {!pathname.startsWith('/dashboard') && <Navbar />}
             <main className="px-1">{children}</main>
-            <Footer />
+            {!pathname.startsWith('/dashboard') && ''}
           </ThemeProvider>
         </StoreProvider>
       </body>

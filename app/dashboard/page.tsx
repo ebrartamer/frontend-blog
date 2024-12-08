@@ -2,61 +2,35 @@
 
 import { useSelector } from 'react-redux'
 import { RootState } from '@/lib/store'
-import  Card  from '@/components/ui/card'
-import { 
-  BookOpen, 
-  Users, 
-  MessageSquare, 
-  TrendingUp 
-} from 'lucide-react'
+
+import DeviceUsage from '@/components/dashboard/DeviceUsage'
+import RecentPosts from '@/components/dashboard/RecentPosts'
+import DashboardStats from '../components/dashboard/DashboardStats'
+import DashboardChart from '../components/dashboard/DashboardChart'
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth)
 
-  const stats = [
-    {
-      title: "Toplam Blog",
-      value: "12",
-      icon: BookOpen,
-      trend: "+2.5%",
-    },
-    {
-      title: "Toplam Okuyucu",
-      value: "2.4K",
-      icon: Users,
-      trend: "+12%",
-    },
-    {
-      title: "Toplam Yorum",
-      value: "45",
-      icon: MessageSquare,
-      trend: "+5%",
-    },
-    {
-      title: "Görüntülenme",
-      value: "8.5K",
-      icon: TrendingUp,
-      trend: "+18%",
-    },
-  ]
-
   return (
     <div className="space-y-6">
-      {/* Karşılama Mesajı */}
       <div>
-        <h1 className="text-3xl font-bold">
-          Hoş Geldin, {user?.username}!
+        <h1 className="text-3xl text-primary font-sans font-bold">
+          Welcome, {user?.username}!
         </h1>
-        <p className="text-muted-foreground mt-1">
-          İşte dashboard istatistiklerin ve son aktivitelerin.
+        <p className="text-muted-foreground font-sans text-secondary mt-1">
+          Here are your dashboard statistics and recent activities.
         </p>
       </div>
 
-
-      {/* Son Aktiviteler veya Diğer İçerikler */}
+      <DashboardStats />
+      <DashboardChart />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Buraya diğer dashboard bileşenleri eklenebilir */}
+       
+        <RecentPosts />
+        <DeviceUsage />
       </div>
+
+      
     </div>
   )
 }

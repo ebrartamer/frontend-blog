@@ -31,9 +31,9 @@ const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <div className="h-screen w-64 bg-white  shadow-md flex flex-col justify-between ">
+    <div className="h-full flex flex-col bg-white shadow-md">
       {/* Logo */}
-      <div className="p-4">
+      <div className="p-4 shrink-0">
         <Link href="/">
           <Image
             src="/postLogo.svg"
@@ -46,7 +46,7 @@ const Sidebar = () => {
       </div>
 
       {/* Menu Items */}
-      <nav className="flex-1 px-4 space-y-4 mt-16">
+      <nav className="flex-1 px-4 space-y-4 mt-16 overflow-y-auto">
         {menuItems.map((item) => (
           <Link
             key={item.href}
@@ -64,7 +64,7 @@ const Sidebar = () => {
       </nav>
 
       {/* Logout */}
-      <div className="p-4">
+      <div className="p-4 border-t mt-auto shrink-0">
         <Link
           href="/auth/logout"
           className="flex items-center space-x-3 text-blue-900 hover:text-green-500"
