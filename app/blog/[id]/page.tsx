@@ -42,7 +42,7 @@ export default function BlogDetail() {
         const data = await response.json()
         if (data.success) {
           setBlog(data.data)
-          // Kullanıcının daha önce beğenip beğenmediğini kontrol et
+          // Check if user has liked before
           if (user && data.data.likes?.includes(user.id)) {
             setIsLiked(true)
           }
@@ -62,7 +62,7 @@ export default function BlogDetail() {
 
   const handleLike = async () => {
     if (!user) {
-      toast.error('Beğenmek için giriş yapmalısınız')
+      toast.error('Please login to like')
       return
     }
 
@@ -83,10 +83,10 @@ export default function BlogDetail() {
             ? blog.likes.filter((id: string) => id !== user.id)
             : [...blog.likes, user.id]
         })
-        toast.success(isLiked ? 'Beğeni kaldırıldı' : 'Blog beğenildi')
+        toast.success(isLiked ? 'Like removed' : 'Blog liked')
       }
     } catch (error) {
-      toast.error('Bir hata oluştu')
+      toast.error('An error occurred')
     }
   }
 
@@ -141,12 +141,12 @@ export default function BlogDetail() {
 
   const handleReplySubmit = async (commentId: string) => {
     if (!user) {
-      toast.error('Yanıt vermek için giriş yapmalısınız');
+      toast.error('Please login to reply');
       return;
     }
 
     if (!replyContent.trim()) {
-      toast.error('Yanıt boş olamaz');
+      toast.error('Reply cannot be empty');
       return;
     }
 
@@ -165,16 +165,16 @@ export default function BlogDetail() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Yanıt başarıyla eklendi');
+        toast.success('Reply added successfully');
         setReplyContent('');
         setReplyingTo(null);
-        setBlog(data.data); // Güncellenmiş blog verisi
+        setBlog(data.data); // Updated blog data
       } else {
-        toast.error(data.message || 'Yanıt eklenirken bir hata oluştu');
+        toast.error(data.message || 'Error adding reply');
       }
     } catch (error) {
       console.error('Reply error:', error);
-      toast.error('Yanıt eklenirken bir hata oluştu');
+      toast.error('Error adding reply');
     }
   };
 
@@ -375,7 +375,7 @@ export default function BlogDetail() {
             <div className="space-y-6">
               {blog.comments.filter((comment: Comment) => !comment.parentId).map((comment: Comment) => (
                 <div key={comment._id} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-                  {/* Yorum Başlığı */}
+                  {/* Comment Header */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
                       {comment.author?.username?.charAt(0)?.toUpperCase() || '?'}
@@ -390,12 +390,12 @@ export default function BlogDetail() {
                     </div>
                   </div>
 
-                  {/* Yorum İçeriği */}
+                  {/* Comment Content */}
                   <div className="text-gray-600 dark:text-gray-300">
                     <ReactMarkdown>{comment.content}</ReactMarkdown>
                   </div>
 
-                  {/* Yanıt Verme Butonu */}
+                  {/* Reply Button */}
                   <div className="mt-4">
                     <Button
                       onClick={() => setReplyingTo(replyingTo === comment._id ? null : comment._id)}
@@ -403,16 +403,16 @@ export default function BlogDetail() {
                       className="text-sm flex items-center gap-2"
                     >
                       <Reply className="w-4 h-4" />
-                      Yanıtla
+                      Reply
                     </Button>
                   </div>
 
-                  {/* Yanıt Formu */}
+                  {/* Reply Form */}
                   {replyingTo === comment._id && (
                     <div className="mt-4 pl-8 border-l-2 border-gray-200">
                       <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
                         <Textarea
-                          placeholder="Yanıtınızı yazın..."
+                          placeholder="Write your reply..."
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
                           className="resize-none bg-transparent border-none"
@@ -424,14 +424,14 @@ export default function BlogDetail() {
                             className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                           >
                             <Send className="w-4 h-4" />
-                            Yanıtla
+                            Reply
                           </Button>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Alt Yorumlar */}
+                  {/* Replies */}
                   {blog.comments
                     .filter((reply: Comment) => reply.parentId === comment._id)
                     .map((reply: Comment) => (

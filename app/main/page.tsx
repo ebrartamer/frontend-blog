@@ -26,7 +26,7 @@ export default function MainContent() {
   }, [dispatch]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('tr-TR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long', 
       day: 'numeric'
@@ -40,7 +40,7 @@ export default function MainContent() {
   }
 
   const handleLike = (blogId: string, e: React.MouseEvent) => {
-    e.preventDefault(); // Link tıklamasını engelle
+    e.preventDefault();
     setLikedPosts(prev => ({
       ...prev,
       [blogId]: !prev[blogId]
@@ -65,7 +65,7 @@ export default function MainContent() {
   return (
     <main className="container mx-auto mt-12 px-4 lg:px-24">
       <div className="flex flex-col md:flex-row gap-8">
-        {/* Sol Sütun (8 birim) */}
+        {/* Left Column (8 units) */}
         <div className="w-full md:w-2/3">
           <div className="w-full">
             <div className="container border-b border-gray-200 mx-auto flex items-center space-x-6 pb-4 px-4 overflow-x-auto [&::-webkit-scrollbar]:h-0">
@@ -96,10 +96,10 @@ export default function MainContent() {
             </div>
           </div>
 
-          {/* Blog Listesi */}
+          {/* Blog List */}
           <div className="mt-8 space-y-6">
             {blogsLoading ? (
-              // Loading durumu
+              // Loading state
               <div className="space-y-6">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
@@ -121,35 +121,35 @@ export default function MainContent() {
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 my-4 hover:shadow-md transition-all duration-200">
                       <div className="flex gap-6">
                         <div className="flex-1">
-                          {/* Yazar Bilgileri */}
+                          {/* Author Info */}
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
                               {blog.author.username?.charAt(0)?.toUpperCase() || '?'}
                             </div>
                             <div>
                               <p className="font-sans font-medium text-primary dark:text-white">
-                                {blog.author.username || 'İsimsiz Yazar'}
+                                {blog.author.username || 'Anonymous Author'}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {blog.createdAt ? formatDate(blog.createdAt) : 'Tarih belirtilmemiş'}
+                                {blog.createdAt ? formatDate(blog.createdAt) : 'Date not specified'}
                               </p>
                             </div>
                           </div>
 
-                          {/* Blog İçeriği */}
+                          {/* Blog Content */}
                           <h3 className="text-xl font-bold font-sans text-primary dark:text-white hover:text-accent transition-colors duration-200 mb-2">
-                            {blog.title || 'Başlıksız Blog'}
+                            {blog.title || 'Untitled Blog'}
                           </h3>
                           <p className="text-gray-600 dark:text-gray-400 font-sans mb-4 line-clamp-2">
-                            {blog.content || 'İçerik bulunmuyor'}
+                            {blog.content || 'No content available'}
                           </p>
 
-                          {/* Meta Bilgiler */}
+                          {/* Meta Info */}
                           <div className="flex items-center gap-6 text-sm text-gray-500">
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
                               <span className="font-sans">
-                                {blog.createdAt ? formatDate(blog.createdAt) : 'Tarih belirtilmemiş'}
+                                {blog.createdAt ? formatDate(blog.createdAt) : 'Date not specified'}
                               </span>
                             </div>
                             <button 
@@ -168,12 +168,12 @@ export default function MainContent() {
                           </div>
                         </div>
 
-                        {/* Blog Görseli */}
+                        {/* Blog Image */}
                         <div className="hidden md:block">
                           <div className="w-40 h-32 rounded-xl overflow-hidden">
                             <Image
                               src={getImageUrl(blog?.image)}
-                              alt={blog.title || 'Blog görseli'}
+                              alt={blog.title || 'Blog image'}
                               width={160}
                               height={128}
                               className="w-full h-full object-cover"
@@ -190,8 +190,8 @@ export default function MainContent() {
               <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl">
                 <p className="text-gray-500 font-sans">
                   {searchTerm 
-                    ? 'Arama kriterlerinize uygun blog bulunamadı.' 
-                    : 'Henüz blog yazısı bulunmuyor.'}
+                    ? 'No blogs found matching your search criteria.' 
+                    : 'No blog posts available yet.'}
                 </p>
               </div>
             )}
@@ -201,11 +201,11 @@ export default function MainContent() {
         {/* Border */}
         <div className="hidden md:block w-px bg-border/60 mx-4"></div>
 
-        {/* Sağ Sütun (4 birim) */}
+        {/* Right Column (4 units) */}
         <div className="w-full md:w-1/3 space-y-8">
-          {/* Popüler Yazılar */}
+          {/* Popular Posts */}
           <div>
-            <h2 className="text-xl font-sans text-primary font-bold mb-4">Popüler Yazılar</h2>
+            <h2 className="text-xl font-sans text-primary font-bold mb-4">Popular Posts</h2>
             <div className="space-y-4 bg-white dark:bg-gray-800  rounded-xl">
               {blogs?.slice(0, 3).map((blog: any) => (
                 blog && blog.author && (
@@ -214,7 +214,7 @@ export default function MainContent() {
                       <div className="w-16 h-16 rounded-lg my-2 overflow-hidden">
                         <Image
                           src={getImageUrl(blog?.image)}
-                          alt={blog.title || 'Blog görseli'}
+                          alt={blog.title || 'Blog image'}
                           width={64}
                           height={64}
                           className="w-full h-full object-cover"
@@ -223,10 +223,10 @@ export default function MainContent() {
                       </div>
                       <div>
                         <h3 className="font-sans font-medium text-primary dark:text-white group-hover:text-accent transition-colors duration-200 line-clamp-2">
-                          {blog.title || 'Başlıksız Blog'}
+                          {blog.title || 'Untitled Blog'}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          {blog.createdAt ? formatDate(blog.createdAt) : 'Tarih belirtilmemiş'}
+                          {blog.createdAt ? formatDate(blog.createdAt) : 'Date not specified'}
                         </p>
                       </div>
                     </div>
@@ -235,9 +235,9 @@ export default function MainContent() {
               ))}
             </div>
           </div>
-          {/* Etiketler */}
+          {/* Tags */}
           <div>
-            <h2 className="text-xl font-sans text-primary font-bold mb-4">Etiketler</h2>
+            <h2 className="text-xl font-sans text-primary font-bold mb-4">Tags</h2>
             <div className="flex flex-wrap gap-2 bg-white dark:bg-gray-800 rounded-xl">
               {blogs?.reduce((tags: Set<string>, blog: any) => {
                 if (blog?.tagsId) {
@@ -267,7 +267,7 @@ export default function MainContent() {
                   </span>
                 ))
               ) : (
-                <p className="text-gray-500 font-sans">Etiket bulunmuyor.</p>
+                <p className="text-gray-500 font-sans">No tags available.</p>
               )}
             </div>
           </div>

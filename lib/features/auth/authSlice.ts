@@ -13,7 +13,7 @@ interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
-  
+  role: "admin" | "user" | null;
 }
 
 // Initial state'i localStorage'dan al
@@ -25,7 +25,8 @@ const getInitialState = (): AuthState => {
     user,
     token,
     loading: false,
-    error: null
+    error: null,
+    role: null
   };
 };
 

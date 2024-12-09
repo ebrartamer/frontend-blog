@@ -244,17 +244,10 @@ export default function Navbar() {
                   </div>
                   <Link
                     href="/profile"
-                    className="text-lg font-medium text-foreground hover:text-accent"
+                    className="text-lg font-medium text-foreground hover:text-white"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Profile
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="text-lg font-medium text-foreground hover:text-accent"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Settings
                   </Link>
                   <button 
                     className="w-full rounded-md bg-accent text-white px-4 py-2 text-lg font-medium transition-colors hover:bg-accent/90"
