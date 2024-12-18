@@ -17,8 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu"
 import { User, LogOut, Settings } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {useDebounce} from "@/lib/hooks/useDebounce"
+import { searchBlogs } from "@/lib/features/search/searchSlice"
 
 export default function Navbar() {
   const { user } = useSelector((state: RootState) => state.auth)
@@ -36,9 +37,14 @@ export default function Navbar() {
 
   useEffect(() => {
     if (debouncedSearchTerm) {
-      router.push(`/main?search=${encodeURIComponent(debouncedSearchTerm)}`)
+      dispatch(searchBlogs({ 
+        query: debouncedSearchTerm,
+        page: 1,
+        limit: 10
+      }))
+      router.push(`/search?q=${encodeURIComponent(debouncedSearchTerm)}`)
     }
-  }, [debouncedSearchTerm, router])
+  }, [debouncedSearchTerm, dispatch, router])
 
   const handleLogout = async () => {
     try {
@@ -84,7 +90,7 @@ export default function Navbar() {
               <div className="relative w-full">
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search blogs..."
                   value={searchTerm}
                   onChange={handleSearch}
                   className="w-full h-10 pl-10 pr-4 rounded-full border border-border bg-background transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/20"

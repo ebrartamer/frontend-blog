@@ -247,7 +247,7 @@ export default function BlogDetail() {
   }
 
   return (
-    <main className="container mx-auto mt-12 px-4  lg:px-24">
+    <main className="container mx-auto mt-12 px-4 mb-24 lg:px-24">
       <article className="max-w-4xl mx-auto">
         {/* Blog Title and Meta Info */}
         <div className="mb-8 text-center">

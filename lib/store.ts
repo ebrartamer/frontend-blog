@@ -1,11 +1,10 @@
-
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import authReducer from './features/auth/authSlice';
 import blogReducer from './features/blog/blogSlice';
 import categoryReducer from './features/category/categorySlice';
 import tagReducer from './features/tag/tagSlice';
 import { configureStore } from '@reduxjs/toolkit';
-
+import searchReducer from './features/search/searchSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +12,7 @@ export const store = configureStore({
     blog: blogReducer,
     category: categoryReducer,
     tag: tagReducer,
+    search: searchReducer,
   },
 });
 
