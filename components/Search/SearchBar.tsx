@@ -13,7 +13,6 @@ export default function SearchBar() {
     if (!searchTerm.trim()) return;
 
     try {
-      console.log('Arama yapılıyor:', searchTerm); // Debug için
       await dispatch(searchBlogs({ 
         query: searchTerm,
         page: 1,

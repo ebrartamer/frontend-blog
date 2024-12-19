@@ -51,7 +51,6 @@ export default function Categories() {
       setCategories(categoriesData.data)
       setTags(tagsData)
     } catch (error) {
-      console.error('Error loading data:', error)
       toast.error('Veriler yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
@@ -81,7 +80,6 @@ export default function Categories() {
         toast.success('Kategori başarıyla silindi')
       }
     } catch (error) {
-      console.error('Error deleting category:', error)
       toast.error('Kategori silinirken bir hata oluştu')
     }
   }
@@ -106,7 +104,6 @@ export default function Categories() {
         toast.success('Kategori başarıyla güncellendi')
       }
     } catch (error) {
-      console.error('Error updating category:', error)
       toast.error('Kategori güncellenirken bir hata oluştu')
     }
   }
@@ -122,7 +119,6 @@ export default function Categories() {
       setTags(tags.filter(tag => tag._id !== id))
       toast.success('Etiket başarıyla silindi')
     } catch (error) {
-      console.error('Error deleting tag:', error)
       toast.error('Etiket silinirken bir hata oluştu')
     }
   }
@@ -140,7 +136,6 @@ export default function Categories() {
       setEditingTag(null)
       toast.success('Etiket başarıyla güncellendi')
     } catch (error) {
-      console.error('Error updating tag:', error)
       toast.error('Etiket güncellenirken bir hata oluştu')
     }
   }

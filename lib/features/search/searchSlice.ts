@@ -48,7 +48,6 @@ export const searchBlogs = createAsyncThunk(
         throw new Error('Veri alınamadı');
       }
 
-      console.log('Arama sonuçları:', response.data); // Debug için
       return response.data;
     } catch (error: any) {
       console.error('Arama hatası:', error);
