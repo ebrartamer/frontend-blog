@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { authService } from './auth.service';
 
-const API_URL = 'http://localhost:5000/api/blogs'
+const API_URL = 'http://localhost:5001/api/blogs'
 
 interface BlogData {
   title: string;

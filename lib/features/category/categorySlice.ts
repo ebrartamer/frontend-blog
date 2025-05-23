@@ -20,7 +20,7 @@ const initialState: CategoryState = {
 export const fetchCategories = createAsyncThunk(
   'category/fetchCategories',
   async () => {
-    const response = await fetch('http://localhost:5000/api/categories');
+    const response = await fetch('http://localhost:5001/api/categories');
     const data = await response.json();
     if (!response.ok) throw new Error(data.message);
     return data.data;

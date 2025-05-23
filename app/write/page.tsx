@@ -106,7 +106,7 @@ export default function WritePage() {
       formData.append('categoryId', selectedCategory)
       formData.append('tagsId', JSON.stringify(selectedTags))
 
-      const response = await fetch('http://localhost:5000/api/blogs', {
+      const response = await fetch('http://localhost:5001/api/blogs', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

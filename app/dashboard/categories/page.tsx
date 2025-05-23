@@ -44,7 +44,7 @@ export default function Categories() {
   const fetchData = async () => {
     try {
       const [categoriesData, tagsData] = await Promise.all([
-        fetch('http://localhost:5000/api/categories').then(res => res.json()),
+        fetch('http://localhost:5001/api/categories').then(res => res.json()),
         tagService.getTags()
       ]);
 
@@ -68,7 +68,7 @@ export default function Categories() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/categories/${id}`, {
+      const response = await fetch(`http://localhost:5001/api/categories/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -86,7 +86,7 @@ export default function Categories() {
 
   const handleUpdateCategory = async (updatedCategory: Category) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/categories/${updatedCategory._id}`, {
+      const response = await fetch(`http://localhost:5001/api/categories/${updatedCategory._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

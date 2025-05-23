@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/categories'
+const API_URL = 'http://localhost:5001/api/categories'
 
 interface Category {
   _id: string;

@@ -49,7 +49,7 @@ const initialState: BlogState = {
 export const fetchBlogs = createAsyncThunk(
   'blog/fetchBlogs',
   async () => {
-    const response = await fetch('http://localhost:5000/api/blogs');
+    const response = await fetch('http://localhost:5001/api/blogs');
     const data = await response.json();
     if (!response.ok) throw new Error(data.message);
     return data.data;
@@ -59,7 +59,7 @@ export const fetchBlogs = createAsyncThunk(
 export const createBlog = createAsyncThunk(
   'blog/createBlog',
   async (data: { title: string; content: string; categoryId: string; tagsId: string[]; author: string; image?: File }) => {
-    const response = await fetch('http://localhost:5000/api/blogs', {
+    const response = await fetch('http://localhost:5001/api/blogs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export const createBlog = createAsyncThunk(
 export const updateBlog = createAsyncThunk(
   'blog/updateBlog',
   async ({ id, data }: { id: string; data: any }) => {
-    const response = await fetch(`http://localhost:5000/api/blogs/${id}`, {
+    const response = await fetch(`http://localhost:5001/api/blogs/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export const updateBlog = createAsyncThunk(
 export const deleteBlog = createAsyncThunk(
   'blog/deleteBlog',
   async (id: string) => {
-    const response = await fetch(`http://localhost:5000/api/blogs/${id}`, {
+    const response = await fetch(`http://localhost:5001/api/blogs/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -107,7 +107,7 @@ export const uploadImage = createAsyncThunk(
   async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
-    const response = await fetch('http://localhost:5000/api/blogs/upload', {
+    const response = await fetch('http://localhost:5001/api/blogs/upload', {
       method: 'POST',
       body: formData,
     });
