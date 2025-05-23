@@ -56,6 +56,8 @@ export const searchBlogs = createAsyncThunk(
   }
 );
 
+
+
 const searchSlice = createSlice({
   name: 'search',
   initialState,
